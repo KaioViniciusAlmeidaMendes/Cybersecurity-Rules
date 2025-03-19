@@ -1,0 +1,29 @@
+rule TA0011_T1071_WAF_requisições_não_bloqueadas_fora_do_brasil{
+
+    meta:
+        author = "Kaio Vinicius Almeida Mendes"
+        description = "Detecta quando alguma requisição de fora do Brasil passa pelo WAF"
+        severity = "Medium"
+        priority = "Medium"
+        mitre_attack_tactic = "Command and Control"
+        mitre_attack_technique = "Application Layer Protocol"
+        mitre_attack_url = "https://attack.mitre.org/techniques/T1071"
+
+    events:
+        $e1.metadata.log_type = "AWS_WAF"
+        $e1.principal.ip_geo_artifact.location.country_or_region != "Brazil" nocase
+        $e1.extracted.fields["httpRequest.country"] != "BR" nocase
+        $e1.extracted.fields["action"] != "BLOCK" nocase
+        $e1.metadata.log_type = $action
+
+    match:
+        $action over 4h
+
+    outcome:
+        $mitre_attack_tactic = array_distinct("Command and Control")
+        $mitre_attack_technique = array_distinct("Application Layer Protocol")
+        $mitre_attack_technique_id = array_distinct("T1071")
+
+    condition:
+        $e1 
+}
