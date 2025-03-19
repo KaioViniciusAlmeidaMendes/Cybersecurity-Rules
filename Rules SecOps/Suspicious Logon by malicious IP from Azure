@@ -1,4 +1,4 @@
-rule TA0006_T1110_PRD_suspicious_failed_login_malicious_ip {
+rule TA0006_T1110_suspicious_failed_login_malicious_ip {
 
     meta:
         author = "Kaio Vinicius Almeida Mendes"
