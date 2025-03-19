@@ -1,0 +1,29 @@
+rule TA0006_T1110_tentativas_falhas_de_login_para_contas_desativadas_AZURE_ACTIVE_DIRECTORY {
+
+    meta:
+        author = "Kaio Vinicius Almeida Mendes"
+        description = "Detecta uma ou múltiplas falhas de login para o AZURE ACTIVE DIRECTORY"
+        severity = "Medium"
+        priority = "Medium"
+        mitre_attack_tactic = "Credential Access"
+        mitre_attack_technique = "Brute Force:Password Guessing"
+        mitre_attack_url = "https://attack.mitre.org/techniques/T1110/001/"
+
+    events:
+        $e1.metadata.log_type = "AZURE_AD"
+        $e1.target.user.attribute.labels["accountEnabled"] = "false" nocase
+        and not $e1.principal.ip in cidr %ip_interno 
+        $e1.security_result.rule_id = $eventId 
+
+    match:
+        $eventId over 1h
+
+    outcome:
+        $mitre_attack_tactic = array_distinct("Credential Access")
+        $mitre_attack_technique = array_distinct("Brute Force:Password Guessing")
+        $mitre_attack_technique_id = array_distinct("T1110.001")
+
+    condition:
+        $e1
+}
+
