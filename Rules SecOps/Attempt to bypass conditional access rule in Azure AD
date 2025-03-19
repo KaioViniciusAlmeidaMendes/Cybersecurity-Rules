@@ -1,0 +1,30 @@
+rule TA0005_T1562_Attempt_to_bypass_conditional_access_rule_in_Azure_AD {
+    meta:
+        author = "Kaio Vinicius Almeida Mendes"
+        description = "Detect attempts to bypass conditional access rules in Azure AD"
+        severity = "Low"
+        mitre_attack_tactic = "Defense Evasion"
+        mitre_attack_technique = "Impair Defenses: Disable or Modify Cloud Security Controls"
+        mitre_attack_url = "https://attack.mitre.org/techniques/T1562/003/"
+    
+    events:
+       $e1.metadata.log_type = "AZURE_AD"
+       $e1.security_result.action = "ALLOW"
+       $e1.security_result.summary = "Successful login occurred" 
+       $e1.additional.fields["conditionalAccessStatus"] = "failure" nocase
+       $e1.security_result.description != "MFA requirement satisfied by claim in the token"
+       $e1.security_result.description != "MFA completed in Azure AD"
+       $e1.security_result.description != "MFA claim has expired due to the policies configured on tenant"
+       $e1.principal.hostname = $hostname
+  
+    match:
+        $hostname over 10m
+
+    outcome:
+        $mitre_attack_tactic = array_distinct("Defense Evasion")
+        $mitre_attack_technique = array_distinct("Impair Defenses: Disable or Modify Cloud Security Controls")
+        $mitre_attack_technique_id = array_distinct("T1562.003")
+
+    condition:
+        $e1
+}
