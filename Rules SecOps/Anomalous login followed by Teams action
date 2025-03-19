@@ -1,0 +1,27 @@
+rule TA0001_T1133_Anomalous_login_followed_by_Teams_action {
+    meta:
+        author = "Kaio Vinicius Almeida Mendes"
+        description = "Detect anonymous user logins with Microsoft Teams activity"
+        severity = "Medium"
+        mitre_attack_tactic = "Initial Access"
+        mitre_attack_technique = "External Remote Services"
+        mitre_attack_url = "https://attack.mitre.org/techniques/T1133"
+        
+    events:
+        $e.metadata.event_type = "USER_LOGIN"
+        $e.target.application = "Microsoft Teams"
+        $e.target.user.email_addresses = ""
+        $e.additional.fields["conditionalAccessStatus"] = "success"
+        $e.principal.hostname = $hostname
+    
+    match:
+        $hostname over 10m
+
+    outcome:
+        $mitre_attack_tactic = array_distinct("Initial Access")
+        $mitre_attack_technique = array_distinct("External Remote Services")
+        $mitre_attack_technique_id = array_distinct("T1133")
+
+    condition:
+        $e
+}
