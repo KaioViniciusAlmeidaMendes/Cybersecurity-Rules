@@ -1,0 +1,32 @@
+rule TA0005_TEC1078_AD_user_enabled_and_password_not_set_within_48_hours {
+  meta:
+    author = "Kaio Vinicius Almeida Mendes"
+    description = "Identifica se a conta de usuário foi habilitada e a senha não foi alterada dentro de 24 horas"
+    severity = "Low"
+    mitre_attack_tactic = "Defense Evasion"
+    mitre_attack_technique = "Valid Accounts "
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1078/"
+
+  events:
+    $e1.metadata.log_type = "WINEVTLOG"
+    and not $e1.principal.user.userid in %Users_TI nocase 
+    $e1.metadata.product_event_type = /(4722)|(4723)/
+    $e1.target.user.userid != /\$$/
+    $target = $e1.target.user.windows_sid
+
+  match:
+    $target over 48h after $e1
+
+  outcome:
+    $risk_score = min(0)
+    $eventCount = count_distinct($e1.metadata.product_event_type)
+    $eventIDMax = array($e1.metadata.product_event_type)
+    $timestamp = min($e1.metadata.event_timestamp.seconds) + 172800
+    $now = timestamp.current_seconds()
+    $mitre_attack_tactic = array_distinct("Defense Evasion")
+    $mitre_attack_technique = array_distinct("Valid Accounts ")
+    $mitre_attack_technique_id = array_distinct("T1078")
+
+  condition:
+    $e1 and $eventCount < 2 and arrays.contains($eventIDMax, "4722") and $timestamp < $now
+}
