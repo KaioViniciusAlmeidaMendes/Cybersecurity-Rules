@@ -1,0 +1,78 @@
+rule TA0011_T1219_PRD_Remote_Access_Tool_Execution {
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Detects execution of various known Remote Access Tools (RATs)"
+    type = "alert"
+    severity = "High"
+    mitre_attack_tactic = "Command and Control"
+    mitre_attack_technique = "Remote Access Software"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1219/"
+
+  events:
+    $e.metadata.event_type = "PROCESS_LAUNCH" and (
+      $e.principal.process.file.full_path = /AA_v.*.exe/ nocase or
+      $e.principal.process.file.full_path = /AteraAgent\.exe/ nocase or
+      $e.principal.process.file.full_path = /AnyDesk\.exe/ nocase or
+      $e.principal.process.file.full_path = /GoToAssist\.exe/ nocase or
+      $e.principal.process.file.full_path = /ReceiverSetup64\.exe/ nocase or
+      $e.principal.process.file.full_path = /JumpDesktopConnect\.msi/ nocase or
+      $e.principal.process.file.full_path = /ConfigurationWizard\.exe/ nocase or
+      $e.principal.process.file.full_path = /KaseyaRemoteControlHost\.exe/ nocase or
+      $e.principal.process.file.full_path =  /LogMeIn\.msi/ nocase or
+      $e.principal.process.file.full_path = /mRemoteNG.exe/ nocase or
+      $e.principal.process.file.full_path = /BAVideoChat.exe/ nocase or
+      $e.principal.process.file.full_path = /ngrok.exe/ nocase or
+      $e.principal.process.file.full_path = /pservice.exe/ nocase or
+      $e.principal.process.file.full_path = /PCMonitorManager.exe/ nocase or
+      $e.principal.process.file.full_path = /PCMonitorSrv.exe/ nocase or
+      $e.principal.process.file.full_path = /pcmontask.exe/ nocase or
+      $e.principal.process.file.full_path = /Radmin.exe/ nocase or
+      $e.principal.process.file.full_path = /vncviewer.exe/ nocase or
+      $e.principal.process.file.full_path = /rfusclient.exe/ nocase or
+      $e.principal.process.file.full_path = /agent-7.1.7.0\.exe/ nocase or
+      $e.principal.process.file.full_path = /RemotePCDesktop.exe/ nocase or
+      $e.principal.process.file.full_path = /RemotePC.exe/ nocase or
+      $e.principal.process.file.full_path = /rsocx.exe/ nocase or
+      $e.principal.process.file.full_path = /RustDesk.exe/ nocase or
+      $e.principal.process.file.full_path = /ConnectWiseControl.Client.exe/ nocase or
+      $e.principal.process.file.full_path = /screenconnect.exe/ nocase or
+      $e.principal.process.file.full_path = /Supremo.exe/ nocase or
+      $e.principal.process.file.full_path = /tigervvnc/ nocase or 
+      $e.principal.process.file.full_path = /vncviewer/ nocase or 
+      $e.principal.process.file.full_path = /tvnserver.exe/ nocase or
+      $e.principal.process.file.full_path = /tvnviewer.exe/ nocase or
+      $e.principal.process.file.full_path = /UltraViewer_Desktop.exe/ nocase or
+      $e.principal.process.file.full_path = /UltraViewer_Service.exe/ nocase or
+      $e.principal.process.file.full_path = /vncserver.exe/ nocase or
+      $e.principal.process.file.full_path = /tv_x64.exe/ nocase or
+      $e.principal.process.file.full_path = /\\LogMeIn/nocase or
+      $e.principal.process.file.full_path = /\\AMMYY/ nocase or
+      $e.principal.process.file.full_path = /\\AnyDesk/ nocase or
+      $e.principal.process.file.full_path = /\\ATERA.Networks/ nocase or
+      $e.principal.process.file.full_path = /\\Splashtop/ nocase or
+      $e.principal.process.file.full_path = /\\GoToMyPC/ nocase or
+      $e.principal.process.file.full_path = /\\IntelliAdmin5/ nocase or
+      $e.principal.process.file.full_path = /\\mRemoteNG/ nocase or
+      $e.principal.process.file.full_path = /\\Radmin/ nocase or
+      $e.principal.process.file.full_path = /\\ScreenConnect/ nocase or
+      $e.principal.process.file.full_path = /\\Supremo/ nocase or
+      $e.principal.process.file.full_path = /\\TeamViewer/ nocase or
+      $e.principal.process.file.full_path = /\\UltraViewer/ nocase or
+      $e.principal.process.file.full_path = /\\RealVNC/ nocase or
+      $e.principal.process.file.full_path = /\\TigerVNC/ nocase or
+      $e.principal.process.file.full_path = /\\domotz/ nocase or
+      $e.principal.process.file.full_path = /\\RemotePC/ nocase or
+      $e.principal.process.file.full_path = /\\TightVNC/ nocase or
+      $e.principal.process.file.full_path = /\\Boomgar/ nocase or
+      $e.principal.process.file.full_path = /\\Chrome Remote Desktop/ nocase or 
+      $e.principal.process.file.full_path = /TeamViewer/
+    )
+
+  outcome:
+    $mitre_attack_tactic = array_distinct("Command and Control")
+    $mitre_attack_technique = array_distinct("Remote Access Software")
+    $mitre_attack_technique_id = array_distinct("T1219")
+
+  condition:
+    $e
+}
