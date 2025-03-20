@@ -1,0 +1,22 @@
+rule TA0011_T1132_PRD_Powershell_Base64_execution {
+
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica processos powershell em base 64"
+    severity = "Medium"
+    mitre_attack_tactic = "Command and Control"
+    mitre_attack_technique = "Data encoding"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1132/"
+
+  events:
+    $e.metadata.event_type = "PROCESS_LAUNCH"
+    $e.target.process.file.full_path = /.*powershell\.exe/ and 
+    $e.target.process.command_line = /.*-EncodedCommand/ and 
+    
+  outcome:
+       $mitre_attack_tactic = array_distinct("Command and Control")
+       $mitre_attack_technique = array_distinct("Data encoding")
+       $mitre_attack_technique_id = array_distinct("T1132")
+  condition:
+    $e
+}
