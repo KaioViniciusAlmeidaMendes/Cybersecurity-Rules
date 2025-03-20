@@ -1,0 +1,36 @@
+rule TA0005_T1112_PRD_User_Account_Control_registry_modification {
+ 
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica mudança nas chaves de registros relacionadas ao UAC"
+    type = "alert"
+    severity = "High"
+    mitre_attack_tactic = "Defense Evasion"
+    mitre_attack_technique = "Modify Registry"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1112/"
+
+  events:
+    (($e.metadata.event_type = "REGISTRY_MODIFICATION") or ($e.metadata.event_type = "REGISTRY_CREATION")) and
+    (
+        (
+            $e.target.registry.registry_key = /\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\EnableLUA/ and
+            $e.target.registry.registry_value_data != "DWORD (0x00000001)"
+        )
+        or
+        (
+            $e.target.registry.registry_key = /\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\ConsentPromptBehaviorAdmin/ and
+            
+        )
+        or
+        (
+            $e.target.registry.registry_key = /HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\localaccounttokenfilterpolicy/
+        )
+    )
+
+   outcome:
+        $mitre_attack_tactic = array_distinct("Defense Evasion")
+        $mitre_attack_technique = array_distinct("Modify Registry")
+        $mitre_attack_technique_id = array_distinct("T1112")
+  condition:
+    $e
+}
