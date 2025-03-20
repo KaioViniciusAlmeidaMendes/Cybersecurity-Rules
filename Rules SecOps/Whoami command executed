@@ -1,0 +1,21 @@
+rule TA0043_T1592_PROD_Whoami_Command_executed{
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica execução do comando whoami"
+    type = "alert"
+    severity = "Low"
+    mitre_attack_tactic = "Reconnaissance"
+    mitre_attack_technique = "Gather Victim Host Information"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1592/"
+  events:
+   $e.metadata.event_type = "PROCESS_LAUNCH"
+   $e.target.process.command_line = /whoami/ nocase
+
+  outcome:
+    $mitre_attack_tactic = array_distinct("Reconnaissance")
+    $mitre_attack_technique = array_distinct("Gather Victim Host Information")
+    $mitre_attack_technique_id = array_distinct("T1592/")
+
+  condition:
+    $e
+}
