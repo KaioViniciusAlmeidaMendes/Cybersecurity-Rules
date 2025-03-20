@@ -1,0 +1,29 @@
+rule TA0011_TEC1071_PRD_Falha_de_logon_por_contas_inexistentes {
+  meta:
+    author = "William Freire"
+    description = "Monitora eventos de segurança, especificamente tentativas de logon (EventID 4625) que falharam devido a um usuário inexistente (SubStatus \"0xc0000064\")."
+    severity = "Low"
+    mitre_attack_tactic = "Command and Control"
+    mitre_attack_technique = "Application Layer Protocol: Web Protocols"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1071/001/"
+    
+  events:
+    $e.metadata.vendor_name = "Microsoft" AND 
+    $e.metadata.product_name = /Windows/ nocase AND 
+    $e.metadata.product_event_type = "4625" AND 
+    $e.security_result.description = "SubStatus(0xc0000064): 0xc0000064"
+    $e.target.user.windows_sid = $sid
+  match:
+    $sid over 1h
+
+  outcome:
+    $log_type = array($e.metadata.log_type)
+    $action = array($e.security_result.action)
+    $details = array($e.security_result.action_details)
+    $summary = array($e.security_result.summary)
+    $mitre_attack_tactic = array_distinct("Command and Control")
+    $mitre_attack_technique = array_distinct("Application Layer Protocol: Web Protocols")
+    $mitre_attack_technique_id = array_distinct("T1071")
+  condition:
+    $e
+}
