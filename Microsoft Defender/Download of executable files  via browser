@@ -1,0 +1,6 @@
+//Author: Enzo Silva Bomfim
+//Download de arquivos executáveis via browser
+DeviceNetworkEvents
+| where RemoteUrl has_any(".exe", ".jar", ".msi", ".bat")
+| where InitiatingProcessFileName has_any ("msegde.exe","chrome.exe", "tor.exe","opera.exe","firefox.exe","brave.exe" )
+| project Timestamp, DeviceName, InitiatingProcessFileName, RemoteUrl, InitiatingProcessAccountName
