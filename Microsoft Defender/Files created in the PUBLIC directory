@@ -1,0 +1,6 @@
+// Autor: Enzo Bomfim
+// Identifica tentativas criação de arquivos no diretório PUBLIC
+DeviceFileEvents 
+| where FolderPath == "C:\\Users\\Public" 
+| where ActionType in ("FileCreated") 
+| project Timestamp, DeviceName,ActionType, InitiatingProcessFileName, FileName, InitiatingProcessAccountName
