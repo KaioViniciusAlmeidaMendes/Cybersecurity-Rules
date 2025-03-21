@@ -1,5 +1,4 @@
-//Author: Enzo Silva Bomfim 
-//Description: Identifica processos powershell em base 64
 DeviceProcessEvents
-|where InitiatingProcessFileName has "powershell.exe" or InitiatingProcessFileName has  "cmd.exe" and ProcessCommandLine has tolower("--EncodedCommand") 
+| where InitiatingProcessFileName =="powershell.exe" or InitiatingProcessFileName == "cmd.exe" 
+| where ProcessCommandLine contains tolower("--EncodedCommand")
 | project Timestamp, DeviceName, ProcessCommandLine
