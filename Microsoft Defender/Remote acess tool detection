@@ -8,13 +8,4 @@ DeviceProcessEvents
     "rustdesk.exe", "connectwisecontrol.Client.exe", "tigervnv.exe", "splashtop.exe",
     "remotepc.exe", "screenconnect.exe"
 )
-| project 
-    Timestamp, 
-    InitiatingProcessAccountName, 
-    DeviceName, 
-    FileName, 
-    ProcessCommandLine, 
-    InitiatingProcessFileName, 
-    FolderPath, 
-    SHA256, 
-    ProcessVersionInfoCompanyName
+| project Timestamp,InitiatingProcessAccountName,DeviceName,FileName,ProcessCommandLine,InitiatingProcessFileName,FolderPath,SHA256,ProcessVersionInfoCompanyName
