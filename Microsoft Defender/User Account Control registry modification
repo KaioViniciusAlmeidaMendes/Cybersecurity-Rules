@@ -1,0 +1,14 @@
+//Author: Enzo Silva Bomfim
+//Identifica mudança nas chaves de registros relacionadas ao UAC
+
+DeviceEvents
+| where ActionType in ("RegistryModification", "RegistryCreation")
+| where (
+    RegistryKey == @"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\EnableLUA" 
+    and RegistryValueData != "DWORD (0x00000001)"
+) or (
+    RegistryKey == @"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\ConsentPromptBehaviorAdmin" 
+) or (
+    RegistryKey == @"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\localaccounttokenfilterpolicy"
+)
+| project Timestamp, DeviceName, AccountName, RegistryKey, RegistryValueData, ProcessCommandLine, InitiatingProcessFileName
