@@ -1,0 +1,5 @@
+//Author: Enzo Silva Bomfim 
+// Identifica a execução do rclone
+DeviceProcessEvents
+| where FileName == "rclone.exe" or ProcessCommandLine contains "rclone"
+| project Timestamp, DeviceName, AccountName, FileName, ProcessCommandLine, InitiatingProcessFileName, InitiatingProcessAccountName
