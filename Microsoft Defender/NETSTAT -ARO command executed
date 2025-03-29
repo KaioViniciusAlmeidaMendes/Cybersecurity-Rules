@@ -1,4 +1,4 @@
 // Author: Enzo Silva Bomfim  
 // Identifica a execução do commando netstat -aro, comando verifica as portas abertas no host  
 DeviceProcessEvents
-| where ProcessCommandLine has "netstat -ano"
+| where ProcessCommandLine == "netstat -ano"
