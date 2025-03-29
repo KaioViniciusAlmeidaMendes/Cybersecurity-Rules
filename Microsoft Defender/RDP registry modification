@@ -1,0 +1,7 @@
+//Author: Enzo Silva Bomfim 
+//Identifica alterações nas chaves de registros relacionados ao RDP 
+DeviceEvents
+| where ActionType == "RegistryModification" or ActionType == "RegistryCreation"
+| where RegistryKey == "/HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Serve/" and RegistryValueName == "fDenyTSConnections" and RegistryValueData != "DWORD (0x00000001)"
+| where RegistryKey == "/HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Serve/" and RegistryValueName == "TSUserEnabled" and RegistryValueData != "DWORD (0x0000000)"
+| project Timestamp, DeviceName, AccountName, RegistryKey, RegistryValueName, RegistryValueData, InitiatingProcessFileName, ProcessCommandLine
