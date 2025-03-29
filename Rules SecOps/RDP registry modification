@@ -10,7 +10,7 @@ rule TA0003_T1133_PRD_RDP_Registry_modification  {
     mitre_attack_url = "https://attack.mitre.org/techniques/T1133/"
 
   events:
-    (($e.metadata.event_type = "REGISTRY_MODIFICATION") or ($e.metadata.event_type = "REGISTRY_CREATION")) 
+    (($e.metadata.event_type = "REGISTRY_MODIFICATION") or ($e.metadata.event_type = "REGISTRY_CREATION")) and
     (
         (
             $e.target.registry.registry_key = /HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Serve/ and
