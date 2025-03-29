@@ -1,0 +1,5 @@
+//Author: Enzo Silva Bomfim 
+// Identifica a execução do comando psexec
+DeviceProcessEvents 
+| where FileName has "psexec.exe" or ProcessCommandLine contains "psexec"
+|project Timestamp, DeviceName, FileName, ProcessCommandLine, InitiatingProcessAccountName
