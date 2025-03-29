@@ -1,4 +1,4 @@
 DeviceProcessEvents
 | where InitiatingProcessFileName =="powershell.exe" or InitiatingProcessFileName == "cmd.exe" 
-| where ProcessCommandLine contains tolower("--EncodedCommand")
+| where ProcessCommandLine has ("--EncodedCommand")
 | project Timestamp, DeviceName, ProcessCommandLine
