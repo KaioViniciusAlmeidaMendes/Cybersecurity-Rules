@@ -5,7 +5,7 @@ DeviceProcessEvents
 (
   FolderPath == @"C:\Windows\Temp" or
   FolderPath  == @"C:\ProgramData" or 
-  FolderPath == @"C:\Users\\Public" or 
+  FolderPath == @"C:\Users\Public" or 
   FolderPath has @"\AppData\Local"
 )
 | project Timestamp, DeviceName, AccountName, FileName, FolderPath, SHA256, ProcessCommandLine, InitiatingProcessFileName
