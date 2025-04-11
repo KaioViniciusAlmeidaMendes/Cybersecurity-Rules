@@ -1,5 +1,6 @@
 //Author: Enzo Silva Bomfim 
 // Identifica a adição de rotas na tabela de roteamento
 DeviceProcessEvents
-| where InitiatingProcessFileName == "cmd.exe" and ProcessCommandLine contains "route add"
+| where InitiatingProcessFileName == "cmd.exe" or FileName == "cmd.exe"
+| where ProcessCommandLine contains "route add"
 | project Timestamp, DeviceName, AccountName, FileName, ProcessCommandLine, InitiatingProcessFileName, InitiatingProcessAccountName
