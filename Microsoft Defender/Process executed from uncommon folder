@@ -1,5 +1,5 @@
 // Author: Enzo Bomfim
-// Identifica execução do PSEXEC
+// Identifica execução de processos em diretórios suspeitos
 DeviceProcessEvents
 | where ActionType == "Process Launch"
 | where 
