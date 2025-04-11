@@ -1,4 +1,6 @@
+// Author: Enzo Silva Bomfim
+// busca comandos powershell que utilizam base64
 DeviceProcessEvents
-| where InitiatingProcessFileName =="powershell.exe" or InitiatingProcessFileName == "cmd.exe" 
-| where ProcessCommandLine has ("--EncodedCommand")
-| project Timestamp, DeviceName, ProcessCommandLine
+| where FileName has_any (@"powershell.exe", @"pwsh.exe", @"powershell_ise.exe","cmd.exe")
+| where ProcessCommandLine contains "base64" or ProcessCommandLine contains "-EcondedCommand"
+| project Timestamp,DeviceName,AccountName,FileName,ProcessCommandLine,InitiatingProcessFileName,InitiatingProcessCommandLine
