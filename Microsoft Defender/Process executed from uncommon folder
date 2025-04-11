@@ -1,11 +1,11 @@
-// Author: Enzo Silva Bomfim  
-// Processos iniciados em diretórios frequentemente utilizados por atacantes 
 DeviceProcessEvents
+| where ActionType == "Process Launch"
 | where 
 (
   FolderPath == @"C:\Windows\Temp" or
   FolderPath  == @"C:\ProgramData" or 
   FolderPath == @"C:\Users\Public" or 
-  FolderPath has @"\AppData\Local"
+  FolderPath startswith @"C:\Users\" and FolderPath contains @"\AppData\Local"
 )
-| project Timestamp, DeviceName, AccountName, FileName, FolderPath, SHA256, ProcessCommandLine, InitiatingProcessFileName
+| project Timestamp, DeviceName, AccountName, FileName, FolderPath, SHA256, ProcessCommandLine, InitiatingProcessFileName, InitiatingProcessSHA256
+| order by Timestamp desc
