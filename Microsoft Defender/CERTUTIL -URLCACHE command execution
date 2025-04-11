@@ -1,5 +1,6 @@
 //Author: Enzo Silva Bomfim
 // Identifica a execucação do comando ceruitl -urlcache
 DeviceProcessEvents
-| where ProcessCommandLine has "certutil" and ProcessCommandLine has "-urlcache"
+| where FileName == "cmd.exe"
+| where ProcessCommandLine contains "certutil -urlcache" 
 | project Timestamp, DeviceName, AccountName, ProcessCommandLine, InitiatingProcessFileName,FolderPath,SHA256,ProcessVersionInfoCompanyName,InitiatingProcessParentFileName
