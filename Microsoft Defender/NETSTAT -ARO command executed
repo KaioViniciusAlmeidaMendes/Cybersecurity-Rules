@@ -3,3 +3,5 @@
 DeviceProcessEvents
 | where FileName= "cmd.exe"
 | where ProcessCommandLine contains "netstat -ano"
+| project Timestamp, DeviceName, AccountName, ProcessCommandLine, InitiatingProcessFileName,InitiatingProcessParentFileName
+
