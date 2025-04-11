@@ -1,3 +1,5 @@
+// Author: Enzo Bomfim
+// Identifica execução do PSEXEC
 DeviceProcessEvents
 | where ActionType == "Process Launch"
 | where 
