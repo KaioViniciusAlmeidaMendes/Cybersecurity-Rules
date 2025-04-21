@@ -1,0 +1,33 @@
+ TA0001_T1190_PRD_WAF_Command_injection_detection {
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Detects command injection attempts in web traffic"
+    type = "alert"
+    severity = "high"
+    mitre_attack_tactic = "Initial Access"
+    mitre_attack_technique = "Exploit Public-Facing Application"
+    mitre_attack_technique_id = "T1190"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1190/"
+  events:
+  $e.metadata.log_type = "AWS_WAF" 
+$e.extracted.fields["action"] != "BLOCK" 
+(
+    re.regex($e.network.http.referral_url, "(?i)\\b(?:cat|uname\\s+-a|systeminfo|whoami|echo|curl|wget|bash|sh|python|perl|ls|/usr/bin/id|ping|nslookup|ipconfig|ifconfig|powershell|inet|eval)\\b") or
+    re.regex($e.network.http.referral_url, "(?i)\\b(?:;|\\|&&|\\n|%0a|%0d|&lt|--|\"|'|!)\\s*(?:rm|cat|echo|curl|wget|python|php|netsh|cmd|exec|systeminfo|uname\\s+-a|inet|shell_exec|popen|eval)") or
+    re.regex($e.network.http.referral_url, "(?i)(?:(?:cat|more|less|head|tail|find|grep)\\s+[^\\s]+(?:/etc/(?:passwd|shadow|hosts)|/proc/self/environ|/var/log/|/boot/grub))") or
+    re.regex($e.network.http.referral_url, "(?i)(?:os\\.system\\(|os\\.popen\\(|subprocess\\.call\\(|subprocess\\.Popen\\(|eval\\(|exec\\()") or
+    re.regex($e.network.http.referral_url, "(?i)(?:System.Diagnostics.Process.Start\\(|System.Diagnostics.Process.GetProcessesByName\\()")
+    $e.metadata.log_type = $action
+    
+    match:
+        $action over 1h
+  outcome:
+    $mitre_attack_tactic = array_distinct("Initial Access")
+    $mitre_attack_technique = array_distinct("Exploit Public-Facing Application")
+    $mitre_attack_technique_id = array_distinct("T1190")
+    $source_ip = array_distinct($e.src.ip)
+    $http_method = array_distinct($e.network.http.method)
+    $user_agent = array_distinct($e.network.http.user_agent)
+  condition:
+    $e
+}
