@@ -8,9 +8,9 @@ rule TA0011_TEC1071_PRD_Falha_de_logon_por_contas_inexistentes {
     mitre_attack_url = "https://attack.mitre.org/techniques/T1071/001/"
     
   events:
-    $e.metadata.vendor_name = "Microsoft" AND 
-    $e.metadata.product_name = /Windows/ nocase AND 
-    $e.metadata.product_event_type = "4625" AND 
+    $e.metadata.vendor_name = "Microsoft" 
+    $e.metadata.product_name = /Windows/ nocase 
+    $e.metadata.product_event_type = "4625" 
     $e.security_result.description = "SubStatus(0xc0000064): User logon with misspelled or bad user account"
     $e.target.user.windows_sid = $sid
   match:
