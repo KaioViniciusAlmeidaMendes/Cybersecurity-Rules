@@ -1,4 +1,4 @@
-TA0002_T1059_PRD_PowerShell_Suspect_Network/Code_Execution {
+rule TA0002_T1059_PRD_PowerShell_Suspect_Network/Code_Execution {
 
   meta:
     author = "Enzo Silva Bomfim"
