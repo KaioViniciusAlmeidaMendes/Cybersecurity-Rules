@@ -9,10 +9,13 @@ rule TA0011_T1132_PRD_Powershell_Base64_execution {
     mitre_attack_url = "https://attack.mitre.org/techniques/T1132/"
 
   events:
-    $e.metadata.event_type = "PROCESS_LAUNCH"
-    $e.target.process.file.full_path = /.*powershell\.exe/ and 
-    $e.target.process.command_line = /.*-EncodedCommand/ and 
-    
+   $e.metadata.event_type = "PROCESS_LAUNCH" 
+   $e.principal.process.file.full_path = /(cmd|powershell|pwsh).exe/ or
+   $e.target.process.file.full_path = /(cmd|powershell|pwsh).exe/
+   $e.target.process.command_line = /.*-(enc|EncodedCommand|base64)/ 
+   $e.metadata.event_type = $action
+    match:
+        $action over 1h
   outcome:
        $mitre_attack_tactic = array_distinct("Command and Control")
        $mitre_attack_technique = array_distinct("Data encoding")
