@@ -10,15 +10,10 @@ TA0002_T1059_PRD_PowerShell_Suspect_Network/Code_Execution {
 
   events:
     $e.metadata.event_type = "PROCESS_LAUNCH" 
-(
-$e.target.process.file.full_path = /powershell|pwsh/ or
-$e.principal.process.file.full_path = /cmd.exe/ or
-$e.principal.process.file.full_path = /powershell|pwsh/
-) and
-(
-$e.target.process.command_line = /webclient|webrequest|tcpclient|socket|shellcode|curl/ nocase 
-) 
-$e.metadata.event_type = $action
+    $e.target.process.file.full_path = /powershell|pwsh|cmd/ or
+    $e.principal.process.file.full_path = /powershell|pwsh|cmd/
+    $e.target.process.command_line = /webclient|webrequest|tcpclient|socket|shellcode|curl/ nocase 
+    $e.metadata.event_type = $action
     match:
         $action over 1h
   outcome:
