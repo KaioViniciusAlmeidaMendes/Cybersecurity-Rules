@@ -1,0 +1,5 @@
+//Author: Enzo Silva Bomfim 
+// Identifica módulos powershell que realizam conexoes de rede 
+DeviceProcessEvents
+| where FileName in ("powershell.exe", "POWERSHELL.EXE", "powershell_ise.exe", "POWERSHELL_ISE.EXE")
+| where ProcessCommandLine has_any ("Net.WebClient","DownloadFile","Invoke-WebRequest","Invoke-Shellcode","http:","New-Object System.Net.Sockets.TcpClient")
