@@ -1,7 +1,7 @@
-rule TA0001_T1190_PRD_WAF_XSS_detection {
+rule KRP_TA0001_T1190_PRD_WAF_XSS_detection {
   meta:
     author = "Enzo Silva Bomfim"
-    description = "Detects SQL injection attempts in web traffic"
+    description = "Detects XSS (cross site scripting) attempts in web traffic"
     type = "alert"
     severity = "high"
     mitre_attack_tactic = "Initial Access"
@@ -9,8 +9,8 @@ rule TA0001_T1190_PRD_WAF_XSS_detection {
     mitre_attack_technique_id = "T1190"
     mitre_attack_url = "https://attack.mitre.org/techniques/T1190/"
   events:
-   $e.metadata.log_type = "AWS_WAF" and
-    $e.extracted.fields["action"] != "BLOCK" and
+   $e.event.metadata.product_name = "XXXXXXXX" 
+    $e.event.security_result.action != "BLOCK" 
     (
         re.regex($e.network.http.referral_url, "(?i)<script[^>]*>.*?</script>") or
         // Basic XSS using <script> tags
@@ -39,8 +39,9 @@ rule TA0001_T1190_PRD_WAF_XSS_detection {
         re.regex($e.network.http.referral_url, "(?i)[`'\"][^'\"]*[<>/](?:[^'\"]*[<>/])?[`'\"]")
         // Log XSS attempts that use unescaped quotes
     )
-
-
+    $e.metadata.log_type = $action
+    match:
+        $action over 1h
   outcome:
     $mitre_attack_tactic = array_distinct("Initial Access")
     $mitre_attack_technique = array_distinct("Exploit Public-Facing Application")
