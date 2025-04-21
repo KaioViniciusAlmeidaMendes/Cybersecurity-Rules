@@ -9,8 +9,8 @@
     mitre_attack_technique_id = "T1190"
     mitre_attack_url = "https://attack.mitre.org/techniques/T1190/"
   events:
-  $e.metadata.log_type = "AWS_WAF" 
-$e.extracted.fields["action"] != "BLOCK" 
+  $e.event.metadata.product_name = "XXXXXXXXXXX" 
+  $e.event.security_result.action != "BLOCK" 
 (
     re.regex($e.network.http.referral_url, "(?i)\\b(?:cat|uname\\s+-a|systeminfo|whoami|echo|curl|wget|bash|sh|python|perl|ls|/usr/bin/id|ping|nslookup|ipconfig|ifconfig|powershell|inet|eval)\\b") or
     re.regex($e.network.http.referral_url, "(?i)\\b(?:;|\\|&&|\\n|%0a|%0d|&lt|--|\"|'|!)\\s*(?:rm|cat|echo|curl|wget|python|php|netsh|cmd|exec|systeminfo|uname\\s+-a|inet|shell_exec|popen|eval)") or
