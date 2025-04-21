@@ -10,8 +10,8 @@ rule TA0001_T1190_HOMOL_WAF_SQL_injection_detection {
     mitre_attack_url = "https://attack.mitre.org/techniques/T1190/"
 
   events:
-    $e.metadata.log_type = "AWS_WAF" and
-    $e.extracted.fields["action"] != "BLOCK" and
+    $e.event.metadata.product_name = "XXXXXXXXXXXX" 
+    $e.event.security_result.action != "BLOCK" 
     (
         re.regex($e.network.http.referral_url, "(?i)\\b(?:select|insert|update|delete|drop|alter|truncate|create|grant|revoke)\\b(?:\\s|/\\*.*?\\*/|--.*?)?(?:from|into|where|table|index|user|procedure|function|database)\\b") or
         re.regex($e.network.http.referral_url, "(?i)\\bunion\\b(?:\\s|/\\*.*?\\*/|--.*?)?(?:all|distinct)?(?:\\s|/\\*.*?\\*/|--.*?)?\\bselect\\b") or
