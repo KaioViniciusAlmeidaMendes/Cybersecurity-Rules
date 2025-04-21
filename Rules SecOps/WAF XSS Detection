@@ -39,7 +39,7 @@ rule KRP_TA0001_T1190_PRD_WAF_XSS_detection {
         re.regex($e.network.http.referral_url, "(?i)[`'\"][^'\"]*[<>/](?:[^'\"]*[<>/])?[`'\"]")
         // Log XSS attempts that use unescaped quotes
     )
-    $e.metadata.log_type = $action
+    $e.event.security_result.action = $action
     match:
         $action over 1h
   outcome:
