@@ -9,8 +9,8 @@ rule KRP_TA0001_T1190_HOMOL_WAF_path_traversal {
     mitre_attack_technique_id = "T1190"
     mitre_attack_url = "https://attack.mitre.org/techniques/T1190/"
   events:
-   $e.metadata.log_type = "AWS_WAF" and
-    $e.extracted.fields["action"] != "BLOCK" and
+   $e.event.metadata.product_name = "XXXXXXXXXXX" 
+    $e.event.security_result.action != "BLOCK" 
     re.regex($e.network.http.referral_url,"(?:\\/etc\\/(?:passwd|shadow|hosts)|\\/proc\\/self\\/environ|\\/var\\/log\\/|\\/boot\\/grub)")
 
   outcome:
