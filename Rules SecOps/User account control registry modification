@@ -10,7 +10,7 @@ rule TA0005_T1112_PRD_User_Account_Control_registry_modification {
     mitre_attack_url = "https://attack.mitre.org/techniques/T1112/"
 
   events:
-    (($e.metadata.event_type = "REGISTRY_MODIFICATION") or ($e.metadata.event_type = "REGISTRY_CREATION")) and
+    (($e.metadata.event_type = "REGISTRY_MODIFICATION") or ($e.metadata.event_type = "REGISTRY_CREATION")) 
     (
         (
             $e.target.registry.registry_key = /\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\EnableLUA/ and
