@@ -1,0 +1,25 @@
+
+TA0008_T1080_PRD_Taint_Shared_Content{
+
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica criação ou modificação de arquivos no diretório (users\public)"
+    severity = "Medium"
+    mitre_attack_tactic = "Lateral Movement"
+    mitre_attack_technique = "Taint Shared Content"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1080/"
+
+  events:
+  $e.metadata.event_type = "FILE_CREATION" or 
+  $e.metadata.event_type = "FILE_MODIFICATION"
+  $e.target.file.full_path = /C:\\Users\\Public\\*/
+  $e.metadata.event_type = $action
+    match:
+        $action over 1h
+  outcome:
+       $mitre_attack_tactic = array_distinct("Latteral Movement")
+       $mitre_attack_technique = array_distinct("Taint Shared Content")
+       $mitre_attack_technique_id = array_distinct("T1080")
+  condition:
+    $e
+}
