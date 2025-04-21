@@ -10,11 +10,11 @@ rule TA0011_T1071_WAF_requisições_não_bloqueadas_fora_do_brasil{
         mitre_attack_url = "https://attack.mitre.org/techniques/T1071"
 
     events:
-        $e1.metadata.log_type = "AWS_WAF"
+        $e1.event.metadata.product_name = "XXXXXXXXXXXXXX"
         $e1.principal.ip_geo_artifact.location.country_or_region != "Brazil" nocase
         $e1.extracted.fields["httpRequest.country"] != "BR" nocase
-        $e1.extracted.fields["action"] != "BLOCK" nocase
-        $e1.metadata.log_type = $action
+        $e1.event.security_result.action != "BLOCK" nocase
+        $e1.event.metadata.product_name = $action
 
     match:
         $action over 4h
