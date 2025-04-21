@@ -10,20 +10,30 @@ rule TA0001_T1190_HOMOL_WAF_SQL_injection_detection {
     mitre_attack_url = "https://attack.mitre.org/techniques/T1190/"
 
   events:
-    $e.event.metadata.product_name = "XXXXXXXXXXXX" 
-    $e.event.security_result.action != "BLOCK" 
+    $e.metadata.log_type = "AWS_WAF" 
+    $e.extracted.fields["action"] != "BLOCK" 
     (
         re.regex($e.network.http.referral_url, "(?i)\\b(?:select|insert|update|delete|drop|alter|truncate|create|grant|revoke)\\b(?:\\s|/\\*.*?\\*/|--.*?)?(?:from|into|where|table|index|user|procedure|function|database)\\b") or
+         //Block SQLi attempts using basic SQL keywords
         re.regex($e.network.http.referral_url, "(?i)\\bunion\\b(?:\\s|/\\*.*?\\*/|--.*?)?(?:all|distinct)?(?:\\s|/\\*.*?\\*/|--.*?)?\\bselect\\b") or
-        re.regex($e.network.http.referral_url, "(?i)/\\*.*?\\*/|--\\s*(\\r\\n?|$)") or
-        re.regex($e.network.http.referral_url, "(?i)(?:\\|\\||\\+)\\s*['\"](?:.*?['\"](?:\\|\\||\\+))?") or
-        re.regex($e.network.http.referral_url, "(?i)(?:%27|%22|%2527|%2522|%u0027|%u0022|\\x27|\\x22)") or
+          //Block SQLi attempts using UNION SELECT.
         re.regex($e.network.http.referral_url, "(?i)\\((?:\\s*select.*?)\\)") or
+         //Log SQLi attempts using subqueries
         re.regex($e.network.http.referral_url, "(?i)\\b(?:information_schema|mysql\\.user|pg_catalog|sysobjects|syscolumns)\\b") or
+         //Log SQLi attempts using information schema keywords.
         re.regex($e.network.http.referral_url, "(?i)\\x00") or
+          //Log SQLi attempts using Null Byte
         re.regex($e.network.http.referral_url, "(?i)\\b(?:select|insert|update|delete|drop|alter)\\b.*?\\b(?:from|where|into|table)\\b.*?\\s*(?:and|or)\\s*(?:1=1|1=0)") or
-        re.regex($e.network.http.referral_url, "(?i)(?:\\#.*?(?:\n|\r|$)|--\\s*-{0,})(?:\\s*(?:'|\"))?")
+          //Block advanced blind SQLi attempts
+        re.regex($e.network.http.referral_url, "(?i)(?:\\#.*?(?:\n|\r|$)|--\\s*-{0,})(?:\\s*(?:'|\"))?") or 
+        //Log SQLi with MySQL specific comments variations
+        re.regex($e.network.http.referral_url, "(?i)'\\s*(?:and|or)\\s*['\\d]+\\s*(?:=|[<>]=?|!=)\\s*['\\d]+|\\)\\s*(?:and|or)\\s*\\([\\d]+\\s*(?:=|[<>]=?|!=)\\s*[\\d]+\\)" )        
+        //Block SQLi using boolean logic for exploitation
     )
+      $e.metadata.log_type = $action
+    
+    match:
+        $action over 1h
 
   outcome:
     $mitre_attack_tactic = array_distinct("Initial Access")
