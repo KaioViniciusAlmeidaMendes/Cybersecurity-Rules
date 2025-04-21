@@ -1,0 +1,26 @@
+
+TA0002_T0008_PRD_CERTUTIL_-URLCACHE_command_execution {
+
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica o uso do PSEXEC"
+    severity = "Medium"
+    mitre_attack_tactic = "Lateral Movement"
+    mitre_attack_technique = "Remote services"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1021/"
+
+  events:
+  $e.metadata.event_type = "PROCESS_LAUNCH" 
+  $e.target.process.file.full_path = /powershell|pwsh|cmd/ or
+  $e.principal.process.file.full_path = /powershell|pwsh|cmd/
+  $e.target.process.command_line = /psexec/ nocase 
+  $e.metadata.event_type = $action
+    match:
+        $action over 1h
+  outcome:
+       $mitre_attack_tactic = array_distinct("Latteral Movement")
+       $mitre_attack_technique = array_distinct("Remote services")
+       $mitre_attack_technique_id = array_distinct("T1021")
+  condition:
+    $e
+}
