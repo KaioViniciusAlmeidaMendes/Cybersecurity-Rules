@@ -8,8 +8,10 @@ rule TA0043_T1592_PROD_Whoami_Command_executed{
     mitre_attack_technique = "Gather Victim Host Information"
     mitre_attack_url = "https://attack.mitre.org/techniques/T1592/"
   events:
-   $e.metadata.event_type = "PROCESS_LAUNCH"
-   $e.target.process.command_line = /whoami/ nocase
+    $e.metadata.event_type = "PROCESS_LAUNCH"
+    $e.principal.process.file.full_path = /cmd|powershell|phsw/ or
+    $e.target.process.file.full_path = /cmd|powershell|phsw/
+    $e.target.process.command_line = /wmic/
 
   outcome:
     $mitre_attack_tactic = array_distinct("Reconnaissance")
