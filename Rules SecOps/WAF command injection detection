@@ -17,6 +17,7 @@
     re.regex($e.network.http.referral_url, "(?i)(?:(?:cat|more|less|head|tail|find|grep)\\s+[^\\s]+(?:/etc/(?:passwd|shadow|hosts)|/proc/self/environ|/var/log/|/boot/grub))") or
     re.regex($e.network.http.referral_url, "(?i)(?:os\\.system\\(|os\\.popen\\(|subprocess\\.call\\(|subprocess\\.Popen\\(|eval\\(|exec\\()") or
     re.regex($e.network.http.referral_url, "(?i)(?:System.Diagnostics.Process.Start\\(|System.Diagnostics.Process.GetProcessesByName\\()")
+)
     $e.metadata.log_type = $action
     
     match:
