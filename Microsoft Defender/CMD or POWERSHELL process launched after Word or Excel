@@ -1,0 +1,9 @@
+//Author: Enzo Silva Bomfim
+//Identifica se houve processo powershell ou CMD executados após arquivos abertos no Word ou Excel
+DeviceProcessEvents
+| where InitiatingProcessFileName in ("WINWORD.exe", "EXCEL.exe")
+| join kind=inner (
+DeviceProcessEvents
+| where FileName in ("powershell.exe","cmd.exe")
+) on $left.ProcessId == $right.InitiatingProcessParentId
+| project Timestamp,DeviceName,AccountName,FileName,ProcessCommandLine,InitiatingProcessFileName,InitiatingProcessCommandLine
