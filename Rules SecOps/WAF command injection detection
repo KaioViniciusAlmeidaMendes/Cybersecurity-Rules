@@ -1,4 +1,4 @@
- TA0001_T1190_PRD_WAF_Command_injection_detection {
+rule TA0001_T1190_PRD_WAF_Command_injection_detection {
   meta:
     author = "Enzo Silva Bomfim"
     description = "Detects command injection attempts in web traffic"
