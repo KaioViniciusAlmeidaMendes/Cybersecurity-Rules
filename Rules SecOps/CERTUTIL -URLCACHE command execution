@@ -1,4 +1,4 @@
-TA0002_T1059_PRD_CERTUTIL_-URLCACHE_command_execution {
+rule TA0002_T1059_PRD_CERTUTIL_-URLCACHE_command_execution {
 
   meta:
     author = "Enzo Silva Bomfim"
