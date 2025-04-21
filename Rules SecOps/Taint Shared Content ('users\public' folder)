@@ -1,5 +1,4 @@
-
-TA0008_T1080_PRD_Taint_Shared_Content{
+rule TA0008_T1080_PRD_Taint_Shared_Content{
 
   meta:
     author = "Enzo Silva Bomfim"
