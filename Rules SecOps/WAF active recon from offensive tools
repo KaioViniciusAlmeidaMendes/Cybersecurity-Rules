@@ -12,29 +12,14 @@ rule TA0043_T1595_WAF_active_recon_from_offensive_tools {
     mitre_attack_url = "https://attack.mitre.org/techniques/T1595/"
 
   events:
-    $e.metadata.log_type = "AWS_WAF"
-    $e.extracted.fields["action"] != "BLOCK" nocase
-    (
-        $e.network.http.user_agent = /.*arachni.*/  nocase or
-        $e.network.http.user_agent = /.*betabot.*/  nocase or
-        $e.network.http.user_agent = /.*bewica-security-scan.*/ nocase or
-        $e.network.http.user_agent = /.*sqlmap.*/ nocase or
-        $e.network.http.user_agent = /.*hydra.*/ nocase or
-        $e.network.http.user_agent = /.*gobuster.*/ nocase or
-        $e.network.http.user_agent = /.*feroxbuster.*/ nocase or
-        $e.network.http.user_agent = /.*amass.*/ nocase or
-        $e.network.http.user_agent = /.*nuclei.*/ nocase or
-        $e.network.http.user_agent = /.*detectify.*/ nocase or
-        $e.network.http.user_agent = /.*dirbuster.*/ nocase or
-        $e.network.http.user_agent = /.*ffuf.*/ nocase or
-        $e.network.http.user_agent = /.*nessus.*/ nocase or
-        $e.network.http.user_agent = /.*nikto.*/ nocase or
-        $e.network.http.user_agent = /.*openvas.*/ nocase or
-        $e.network.http.user_agent = /.*wpscan.*/ nocase or
-        $e.network.http.user_agent = /.*wprecon.*/ nocase or
-        $e.network.http.user_agent = /.*wfuzz.*/ nocase
-)
-
+     $e.event.metadata.product_name = "XXXXXXXX"
+     $e.event.event.security_result.action != "BLOCK" nocase
+     $e.metadata.log_type = "AWS_WAF" 
+     $e.extracted.fields["action"] != "BLOCK" 
+     $e.network.http.user_agent = /.*(arachni|betabot|bewica-security-scan|sqlmap|hydra|gobuster|feroxbuster|amass|nuclei|detectify|dirbuster|ffuf|nessus|nikto|openvas|wpscan|wprecon|wfuzz|spiderfoot|reconftw|subzy|cloudbrute|AORT|AWSBucketDump|gowitness).*/ nocase
+     $e.network.http.user_agent = $action
+      match:
+         $action over 1h
   outcome:
     $mitre_attack_tactic = array_distinct("Reconnaissance")
     $mitre_attack_technique = array_distinct("Active scanning")
