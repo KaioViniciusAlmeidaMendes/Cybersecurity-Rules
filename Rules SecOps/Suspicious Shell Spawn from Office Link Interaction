@@ -1,0 +1,27 @@
+rule TA0002_T1203_PRD_Suspicious_Shell_Spawn_from_Office_Link_Interaction  {
+
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica processos filhos suspeitos inciados após  o uso do Office365 "
+    type = "alert"
+    severity = "High"
+    mitre_attack_tactic = "Execution"
+    mitre_attack_technique = "Exploitation for Client Execution"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1203/"
+
+  events:
+    $e.metadata.event_type = "PROCESS_LAUNCH"
+    $e.principal.process.file.full_path = /winword|excel|\.pdf|\.lnk|\.jpg/ nocase
+    $e.target.process.file.full_path = /cmd|powershell|pwsh|python/
+    $e.metadata.event_type = $action
+    match:
+        $action over 1h
+
+  outcome:
+    $mitre_attack_tactic = array_distinct("Execution")
+    $mitre_attack_technique = array_distinct("Exploitation for Client Execution")
+    $mitre_attack_technique_id = array_distinct("T1203")
+
+  condition:
+    $e
+}
