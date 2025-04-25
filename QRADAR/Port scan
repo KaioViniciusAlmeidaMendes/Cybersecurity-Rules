@@ -1,0 +1,5 @@
+SELECT "Event Name", "Source IP", "Destination Port"
+FROM events
+WHERE "Event Name" = 'Port Connection Attempt'
+GROUP BY "Source IP"
+HAVING COUNT(DISTINCT "Destination Port") >= 10 AND TIME_WINDOW <= 5 MINUTES
