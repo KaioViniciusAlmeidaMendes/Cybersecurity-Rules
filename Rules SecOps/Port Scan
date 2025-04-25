@@ -1,0 +1,41 @@
+rule TA0007_T1046_port_scan_detection {
+
+  meta:
+    author = "Gemini"
+    description = "Detecta atividade potencial de varredura de portas (port scan) onde um único IP de origem tenta se conectar a várias portas de destino distintas dentro de um curto período de tempo."
+    severity = "MEDIUM" // Pode ser ajustado para HIGH dependendo do ambiente
+    priority = "MEDIUM"
+    mitre_technique_id = "T1046" // MITRE ATT&CK: Port Scan
+    mitre_tactic_id = "TA0007"  // MITRE ATT&CK: Discovery
+
+  events:
+    // Filtra por eventos de rede (conexão ou firewall)
+    // Ajuste os event_types conforme os logs disponíveis no seu Chronicle (ex: VPC Flow, Firewall Logs, Zeek, etc.)
+    (
+      $network.metadata.event_type = "NETWORK_CONNECTION" OR
+      $network.metadata.event_type = "NETWORK_FIREWALL" OR
+      $network.metadata.event_type = "GENERIC_NETWORK_FLOW" // Exemplo para outros tipos
+    )
+
+    // Define o IP de origem. Usamos $src_ip como placeholder no 'match'
+    $network.principal.ip = $src_ip
+
+    // Garante que existe uma porta de destino registrada (evita logs incompletos)
+    $network.target.port != 0
+
+    // Opcional: Pode-se focar em conexões negadas/bloqueadas, que são comuns em scans,
+    // mas isso pode perder scans bem-sucedidos em portas abertas.
+    // Para incluir essa lógica (mais específica, menos abrangente):
+    // $network.network.action = "BLOCK" or $network.network.action = "DENY"
+
+  match:
+    // Agrupa os eventos pelo IP de origem ($src_ip) em uma janela de tempo (ex: 10 minutos)
+    $src_ip over 10m // Ajuste a janela de tempo conforme necessário
+
+  condition:
+    // A condição de detecção:
+    // Conta o número de portas de destino *distintas* acessadas pelo $src_ip na janela de tempo.
+    // Dispara o alerta se o número de portas distintas for maior ou igual a um limite (threshold).
+    #distinct($network.target.port) >= 50 // Ajuste o threshold (50 é um exemplo)
+
+}
