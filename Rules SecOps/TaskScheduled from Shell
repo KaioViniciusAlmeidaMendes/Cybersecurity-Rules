@@ -1,0 +1,27 @@
+rule TA0003_T1053_PRD_TaskSched_From_Shell {
+
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica tarefas agendadas criadas via CMD ou powershell"
+    type = "alert"
+    severity = "Medium"
+    mitre_attack_tactic = "Persistence"
+    mitre_attack_technique = "Scheduled Task/Job"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1053/"
+
+  events:
+    $e.metadata.event_type = "PROCESS_LAUNCH"
+    $e.principal.process.file.full_path = /cmd|powershell|pwsh/
+    $e.target.process.file.full_path = /taskschd/
+    $e.metadata.event_type = $action
+
+    match:
+        $action over 1h
+
+  outcome:
+    $mitre_attack_tactic = array_distinct("Persistence")
+    $mitre_attack_technique = array_distinct("Scheduled Task/Job")
+    $mitre_attack_technique_id = array_distinct("T1053")
+  condition:
+    $e
+}
