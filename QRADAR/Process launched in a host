@@ -1,1 +1,3 @@
-SELECT "starttime","Process Name","command line"," Device Name","username" from events  WHERE "Device Name" = 'XXXXXXXXXXXXXXXXX'
+SELECT "starttime","Process Name","command line"," Device Name","username" 
+from events  
+WHERE "Device Name" = 'XXXXXXXXXXXXXXXXX'
