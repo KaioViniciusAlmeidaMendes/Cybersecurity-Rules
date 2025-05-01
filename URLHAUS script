@@ -1,0 +1,60 @@
+import requests
+from urllib.parse import urlparse
+import tldextract
+import os
+from datetime import datetime
+
+# Gera nome do arquivo com data e hora
+data_hora = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+nome_arquivo = f"dados_urls_{data_hora}.txt"
+caminho_arquivo = os.path.join(os.getcwd(), nome_arquivo)
+
+# URL da API
+url = "https://urlhaus-api.abuse.ch/v1/urls/recent/"
+dominios_ips = []
+
+try:
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+
+        for item in data["urls"]:
+            full_url = item["url"]
+            parsed = urlparse(full_url)
+            host = parsed.netloc
+
+            if ":" in host:
+                host = host.split(":")[0]
+
+            if all(c.isdigit() or c == '.' for c in host):
+                dominios_ips.append(host)
+            else:
+                ext = tldextract.extract(host)
+                # Inclui o subdomínio na string
+                dominio_completo = f"{ext.subdomain}.{ext.domain}.{ext.suffix}".lstrip('.')
+                dominios_ips.append(dominio_completo)
+
+        # Remove duplicados
+        dominios_ips = list(set(dominios_ips))
+        dominios_ips.sort()
+
+    else:
+        print(f"Erro ao acessar a API. Código de status: {response.status_code}")
+
+except Exception as e:
+    print(f"Ocorreu um erro: {e}")
+
+# Gera o arquivo sempre, mesmo que vazio
+try:
+    with open(caminho_arquivo, "w", encoding="utf-8") as file:
+        if dominios_ips:
+            for d in dominios_ips:
+                file.write(d + "\n")
+        else:
+            file.write("Nenhum dado foi coletado.\n")
+
+    print(f"Arquivo gerado com sucesso em:\n{caminho_arquivo}")
+
+except Exception as e:
+    print(f"Erro ao salvar o arquivo: {e}")
