@@ -1,0 +1,5 @@
+SELECT QIDNAME(qid) AS 'Event Name', UniqueCount(logSourceId) AS 'Log Source (Unique Count)', SUM("eventCount") AS 'Event Count (Sum)', MIN("startTime") AS 'Start Time (Minimum)', 
+UniqueCount(category) AS 'Low Level Category (Unique Count)', UniqueCount("sourceIP") AS 'Source IP (Unique Count)', UniqueCount("sourcePort") AS 'Source Port (Unique Count)', UniqueCount("destinationIP") 
+AS 'Destination IP (Unique Count)', UniqueCount("destinationPort") AS 'Destination Port (Unique Count)', UniqueCount("userName") AS 'Username (Unique Count)', MIN("magnitude") AS 'Magnitude (Minimum)', 
+COUNT(*) AS 'Count' from events where ( (category='3034') or (category='3115') or (category='3116') or (category='3124') or (category='3125') or (category='3147') AND "userName"='XXXXXXXXXX' ) 
+GROUP BY qid order by "Count" desc LIMIT 1000 last 60 minutes
