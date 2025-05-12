@@ -1,0 +1,23 @@
+rule KRP_TA0043_TEC1592_PRD_WMIC_Advanced_Detection {
+  meta:
+    author = "Kaio Vinicius Almeida Mendes"
+    description = "Detecta execuções do comando wmic, incluindo formas obfuscadas ou automatizadas"
+    type = "alert"
+    severity = "High"
+    mitre_attack_tactic = "Reconnaissance"
+    mitre_attack_technique = "Gather Victim Host Information"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1592/"
+
+  events:
+    $event.metadata.event_type = "PROCESS_LAUNCH"
+    $event.principal.process.file.full_path = /(?i)(\\|\/)(cmd|powershell|pwsh|python|wscript|cscript|sh|bash)(\.exe)?$/
+    $event.target.process.command_line = /(?i)(wmic(\s+[a-z]+)?(\s+get\s+|\/format|\/output|\/node|\/user|\/password)?)/
+    $event.principal.process.command_line = /(?i)(invoke-expression|-encodedcommand|from subprocess|shell=True)/
+ outcome:
+    $mitre_attack_tactic = array_distinct("Reconnaissance")
+    $mitre_attack_technique = array_distinct("Gather Victim Host Information")
+    $mitre_attack_technique_id = array_distinct("T1592")
+
+  condition:
+    $event
+}
