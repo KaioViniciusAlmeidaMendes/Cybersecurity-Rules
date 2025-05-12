@@ -1,4 +1,4 @@
-rule KRP_TA0043_TEC1592_PRD_Whoami_Advanced_Detection {
+rule TA0043_TEC1592_Whoami_Advanced_Detection {
   meta:
     author = "Kaio Vinicius Almeida Mendes"
     description = "Detecta padrões de execução do comando whoami, incluindo variações evasivas"
