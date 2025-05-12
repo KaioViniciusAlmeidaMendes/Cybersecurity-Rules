@@ -10,7 +10,7 @@ rule KRP_TA0043_TEC1592_PRD_Whoami_Advanced_Detection {
 
   events:
     $event.metadata.event_type = "PROCESS_LAUNCH"
-    $event.target.process.file.full_path = /(?i)(\\|\/)(cmd|powershell|pwsh|wscript|cscript|bash|sh|python)(\.exe)?$/
+    $event.principal.process.file.full_path = /(?i)(\\|\/)(cmd|powershell|pwsh|wscript|cscript|bash|sh|python)(\.exe)?$/
     $event.target.process.command_line = /(?i)(whoami(\s+\/(user|groups|priv))?|["']?whoami["']?|whoami\s*[|&>])/
     $event.principal.process.command_line = /(?i)(-encodedcommand|invoke-expression|eval|exec|from subprocess|shell=True)/
     
