@@ -1,4 +1,4 @@
-rule KRP_TA0043_TEC1592_PRD_WMIC_Advanced_Detection {
+rule TA0043_TEC1592_WMIC_Advanced_Detection {
   meta:
     author = "Kaio Vinicius Almeida Mendes"
     description = "Detecta execuções do comando wmic, incluindo formas obfuscadas ou automatizadas"
