@@ -1,0 +1,29 @@
+rule TA0001_TEC1190_PRD_WAF_SSRF_detection {
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Detects SSRF (Server-side request forgery) attempts in web traffic"
+    type = "alert"
+    severity = "high"
+    mitre_attack_tactic = "Initial Access"
+    mitre_attack_technique = "Exploit Public-Facing Application"
+    mitre_attack_technique_id = "T1190"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1190/"
+  events:
+    $e.metadata.log_type = "XXXXXXXF"
+    $e.security_result.action != "BLOCK"
+    // Condição 1: Encontrar o padrão de URL com prefixo
+    re.regex($e.network.http.referral_url, "(?:\\?|:|--|=)HTTPS?://|;HTTP*://") nocase and
+    $e.metadata.log_type = $action
+    match:
+        $action over 1h
+  outcome:
+    $mitre_attack_tactic = array_distinct("Initial Access")
+    $mitre_attack_technique = array_distinct("Exploit Public-Facing Application")
+    $mitre_attack_technique_id = array_distinct("T1190")
+    $source_ip = array_distinct($e.src.ip)
+    $http_method = array_distinct($e.network.http.method)
+    $user_agent = array_distinct($e.network.http.user_agent)
+
+  condition:
+    $e
+}
