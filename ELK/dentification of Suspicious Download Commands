@@ -1,0 +1,1 @@
+(file.name: "certutil.exe") AND process.command_line:(*-urlcache*) OR (file.name:("cmd.exe" OR "pwsh.exe" OR "powershell.exe" OR "powershell_ise.exe")) AND process.command_line:(*Invoke-WebRequest* OR *iwr*  OR *-uri*  OR *Start-BitsTransfer* OR *bitsadmin*  OR *Net.WebClient* OR *DownloadFile*  OR *wget* OR *curl*)
