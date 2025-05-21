@@ -1,0 +1,2 @@
+(event.category:process AND process.parent.executable:/[Cc]\:\\[Ww][Ii][Nn][Dd][Oo][Ww][Ss]\\[Ee][Xx][Pp][Ll][Oo][Rr][Ee][Rr]\.[Ee][Xx][Ee]/ AND process.executable:/[Cc]\:\\[Ww][Ii][Nn][Dd][Oo][Ww][Ss]\\[Ss][Yy][Ss][Tt][Ee][Mm]32\\[Cc][Mm][Dd]\.[Ee][Xx][Ee]/ 
+AND process.command_line.text:"*powershell*" AND process.command_line:/.*\.[Ll][Nn][Kk].*/)
