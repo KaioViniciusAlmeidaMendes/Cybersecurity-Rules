@@ -1,0 +1,1 @@
+(process.name:*psexec* OR process.name:*PsExec* OR process.name:*psExec* OR process.name:*Psexec* OR process.command_line:*psexec* OR process.command_line:*PSEXESVC* OR winlog.event_data.Image:*psexec* 
