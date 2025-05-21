@@ -1,0 +1,1 @@
+(event.category:process AND process.name:/.*(powershell|pwsh)\.exe/ AND process.working_directory:/.*(C:\\Users\\Public|%Public%)/)
