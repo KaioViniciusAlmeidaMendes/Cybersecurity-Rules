@@ -1,30 +1,35 @@
 rule TA0006_T1110_suspicious_failed_login_malicious_ip {
 
-    meta:
+   meta:
         author = "Kaio Vinicius Almeida Mendes"
-        description = "Detects failed login attempts due to a malicious IP (error code 50053)."
-        severity = "Critical"
+        description = "Detects successful login shortly after a 50053 error indicating a previous lockout or malicious IP."
+        severity = "High"
         priority = "Critical"
         mitre_attack_tactic = "Credential Access"
-        mitre_attack_technique = "Brute Force:Password Guessing"
+        mitre_attack_technique = "Brute Force: Password Guessing"
         mitre_attack_url = "https://attack.mitre.org/techniques/T1110/001/"
 
     events:
-        $e1.metadata.log_type = "AZURE_AD"
-        $e1.metadata.event_type = "USER_LOGIN"
-        $e1.security_result.summary != "Failed login occurred"
-        $e1.security_result.action != "BLOCK"
-        $e1.security_result.rule_id = "50053"
-        $e1.security_result.rule_id = $eventId 
+    $e1.metadata.log_type = "AZURE_AD"
+    $e1.metadata.event_type = "USER_LOGIN"
+    $e1.security_result.rule_id = "50053"
+    $e1.security_result.rule_id = $eventId
+    $e1.extracted.fields["actor.email"] = $user
 
-    match:
-        $eventId over 5m
+    $e2.metadata.log_type = "AZURE_AD"
+    $e2.metadata.event_type = "USER_LOGIN"
+    $e2.security_result.action != "BLOCK"
+    $e2.extracted.fields["actor.email"] = $user
 
-    outcome:
-        $mitre_attack_tactic = array_distinct("Credential Access")
-        $mitre_attack_technique = array_distinct("Brute Force:Password Guessing")
-        $mitre_attack_technique_id = array_distinct("T1110.001")
-        
-    condition:
-        $e1
+    $e1.metadata.event_timestamp.seconds < $e2.metadata.event_timestamp.seconds
+
+match:
+    $eventId, $user over 1h
+outcome:
+    $mitre_attack_tactic = array_distinct("Credential Access")
+    $mitre_attack_technique = array_distinct("Brute Force: Password Guessing")
+    $mitre_attack_technique_id = array_distinct("T1110.001")
+
+condition:
+    $e1 and $e2
 }
