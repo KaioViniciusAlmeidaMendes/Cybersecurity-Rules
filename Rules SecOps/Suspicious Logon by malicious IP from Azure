@@ -10,26 +10,30 @@ rule TA0006_T1110_suspicious_failed_login_malicious_ip {
         mitre_attack_url = "https://attack.mitre.org/techniques/T1110/001/"
 
     events:
-    $e1.metadata.log_type = "AZURE_AD"
-    $e1.metadata.event_type = "USER_LOGIN"
-    $e1.security_result.rule_id = "50053"
-    $e1.security_result.rule_id = $eventId
-    $e1.extracted.fields["actor.email"] = $user
+        $e1.metadata.log_type = "AZURE_AD"
+        $e1.metadata.event_type = "USER_LOGIN"
+        $e1.security_result.rule_id = "50053"
+        $e1.extracted.fields["actor.email"] = $user
 
-    $e2.metadata.log_type = "AZURE_AD"
-    $e2.metadata.event_type = "USER_LOGIN"
-    $e2.security_result.action != "BLOCK"
-    $e2.extracted.fields["actor.email"] = $user
+        
+        $e2.metadata.log_type = "AZURE_AD"
+        $e2.metadata.event_type = "USER_LOGIN"
+        $e2.security_result.action != "BLOCK"
+        $e2.extracted.fields["actor.email"] = $user
 
-    $e1.metadata.event_timestamp.seconds < $e2.metadata.event_timestamp.seconds
+        
+        $e1.metadata.event_timestamp.seconds <= $e2.metadata.event_timestamp.seconds
+        $e2.metadata.event_timestamp.seconds - $e1.metadata.event_timestamp.seconds <= 3600
 
-match:
-    $eventId, $user over 1h
-outcome:
-    $mitre_attack_tactic = array_distinct("Credential Access")
-    $mitre_attack_technique = array_distinct("Brute Force: Password Guessing")
-    $mitre_attack_technique_id = array_distinct("T1110.001")
+    match:
+        $user over 1h  
 
-condition:
-    $e1 and $e2
+    outcome:
+        $mitre_attack_tactic = array_distinct("Credential Access")
+        $mitre_attack_technique = array_distinct("Brute Force: Password Guessing")
+        $mitre_attack_technique_id = array_distinct("T1110.001")
+        $time_elapsed_sec = max($e2.metadata.event_timestamp.seconds) - min($e1.metadata.event_timestamp.seconds)
+
+    condition:
+        $e1 and $e2
 }
