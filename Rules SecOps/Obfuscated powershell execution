@@ -1,0 +1,32 @@
+rule TA0011_TEC1132_PRD_obfuscation_Powershell_execution {
+
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica processos ofuscados em  powershell"
+    severity = "Medium"
+    mitre_attack_tactic = "Command and Control"
+    mitre_attack_technique = "Data encoding"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1132/"
+
+  events:
+    $e.metadata.event_type = "PROCESS_LAUNCH"
+    //Detecta execução de PowerShell ou pwsh
+    $e.principal.process.file.full_path = /(cmd|powershell|pwsh).exe/ or
+    $e.target.process.file.full_path = /(cmd|powershell|pwsh).exe/
+    //Detecta padrões típicos de fragmentação de strings no comando
+    $e.target.process.command_line = /(["'].?["']\s\+\s*)+["'].*?["']/ or
+    $e.target.process.command_line = /\((?:'[^']+',\s*)+'[^']+'\)\s*-join\s*['"]?[^'"]*['"]?/ or
+    $e.target.process.command_line = /\[char\]\d{2,3}/ or 
+    $e.target.process.command_line = /.*-(enc|EncodedCommand|base64)/
+    //Mantém coerência com estrutura original
+     $e.principal.hostname = $action
+     
+    match:
+        $action over 1h
+  outcome:
+       $mitre_attack_tactic = array_distinct("Command and Control")
+       $mitre_attack_technique = array_distinct("Data encoding")
+       $mitre_attack_technique_id = array_distinct("T1132")
+  condition:
+    $e
+}
