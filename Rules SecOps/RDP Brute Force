@@ -1,0 +1,30 @@
+rule TA0006_TEC1110_PRD_Brute_force_RDP {
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Detecta brute force contra servidores RDP"
+    type = "alert"
+    severity = "Medium"
+    mitre_attack_tactic = "Credential Access"
+    mitre_attack_technique = "Brute Force"
+    mitre_attack_technique_id = "T1110.001"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1110/001/"
+
+  events:
+    $e.metadata.event_type = "NETWORK_CONNECTION"
+    $e.target.application = "RDP"
+    $e.security_result.action != "BLOCK" and not 
+    $e.principal.ip in cidr %Internal_IP
+    $source_ip = $e.src.ip
+    $user_agent = $e.network.http.user_agent
+    $http_method = $e.network.http.method
+
+  match:
+    $source_ip over 5m
+  outcome:
+    $mitre_attack_tactic = array_distinct("Credential Access")
+    $mitre_attack_technique = array_distinct("Brute Force")
+    $mitre_attack_technique_id = array_distinct("T1110.001")
+
+  condition:
+    #e > 50
+}
