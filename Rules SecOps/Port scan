@@ -1,0 +1,35 @@
+rule PRD_TA0043_1595_Port_Scan {
+
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica uma varredura de portas na rede"
+    type = "alert"
+    severity = "Medium"
+    mitre_attack_tactic = "Reconnaissance"
+    mitre_attack_technique = "Active Scanning"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1595/"
+
+  events:
+    $event.metadata.event_type = "NETWORK_CONNECTION"
+    $event.security_result.action != "BLOCK"
+    $source_ip = $event.principal.ip and not 
+    $event.principal.ip in cidr %Internal_IP 
+    $target_ip = $event.target.ip
+    $dest_port = $event.target.port
+    $user_agent = $event.network.http.user_agent
+
+  match:
+    $source_ip, $target_ip over 5m
+
+  outcome:
+    $mitre_attack_tactic = array_distinct("Reconnaissance")
+    $mitre_attack_technique = array_distinct("Active Scanning")
+    $mitre_attack_technique_id = array_distinct("T1595")
+    $source_ip_outcome = array_distinct($source_ip)
+    $target_ip_outcome = array_distinct($target_ip)
+    $user_agent_outcome = array_distinct($user_agent)
+    $unique_ports = count_distinct($dest_port)
+
+  condition:
+    $event and $unique_ports > 20
+}
