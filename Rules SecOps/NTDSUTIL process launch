@@ -1,0 +1,23 @@
+rule _TA0008_T1005_PRD_NTDSUTIL_command_execution {
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica o uso do comando ntdsutil"
+    severity = "Medium"
+    mitre_attack_tactic = "Collection"
+    mitre_attack_technique = "Data from Local System"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1005/"
+
+  events:
+  $e.metadata.event_type = "PROCESS_LAUNCH"
+  $e.target.process.file.full_path = /ntdsutil.exe/ or
+  $e.principal.process.file.full_path = /ntdsutil.exe/
+  $e.metadata.event_type = $action
+    match:
+        $action over 1h
+  outcome:
+       $mitre_attack_tactic = array_distinct("Collectiom")
+       $mitre_attack_technique = array_distinct("Data from Local System")
+       $mitre_attack_technique_id = array_distinct("T1005")
+  condition:
+    $e
+}
