@@ -1,0 +1,3 @@
+union withsource=SourceTable DeviceProcessEvents, DeviceNetworkEvents, DeviceEvents, DeviceFileEvents
+| where ProcessCommandLine contains_cs "curl" or InitiatingProcessCommandLine contains "curl"
+| where ProcessCommandLine contains "-X POST"
