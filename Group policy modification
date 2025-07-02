@@ -1,0 +1,27 @@
+rule TA0005_TEC1484_PRD_Group_policy_modification{
+
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica modificações na GPO "
+    type = "alert"
+    severity = "Medium"
+    mitre_attack_tactic = "Defense Evasion"
+    mitre_attack_technique = "Domain or Tenant Policy Modification"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1484/"
+
+  events:
+    $e.metadata.log_type = "WINEVTLOG"
+    $e.metadata.product_event_type="5137" or 
+    $e.metadata.product_event_type = "5136" or
+    $e.metadata.product_event_type = "5141" or
+    $e.metadata.product_event_type = "5138"
+    $e.metadata.log_type = $action
+    match:
+        $action over 1h
+  outcome:
+    $mitre_attack_tactic = array_distinct("Defense Evasion")
+    $mitre_attack_technique = array_distinct("Domain or Tenant Policy Modification")
+    $mitre_attack_technique_id = array_distinct("T1484.001")
+  condition:
+    $e
+}
