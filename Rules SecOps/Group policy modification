@@ -1,4 +1,4 @@
- TA0005_TEC1484_PRD_Group_policy_modification{
+rule TA0005_TEC1484_PRD_Group_policy_modification{
 
   meta:
     author = "Enzo Silva Bomfim"
