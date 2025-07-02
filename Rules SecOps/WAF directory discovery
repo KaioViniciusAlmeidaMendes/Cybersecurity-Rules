@@ -1,0 +1,31 @@
+rule TA0043_T1595_PRD_WAF_Directory_Discovery {
+
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica reconhecimento de diretórios"
+    type = "alert"
+    severity = "Medium"
+    mitre_attack_tactic = "Reconnaissance"
+    mitre_attack_technique = "Active Scanning"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1595/"
+
+  events:
+    $e.metadata.log_type = "XXXXXX" 
+    $e.extracted.fields["action"] != "BLOCK" 
+    $source_ip = $e.principal.ip
+    $dominio = $e.target.hostname
+    $diretorio = $e.target.url
+
+  match:
+    $source_ip, $dominio over 5m
+  outcome:
+    $mitre_attack_tactic = array_distinct("Reconnaissance")
+    $mitre_attack_technique = array_distinct("Active Scanning")
+    $mitre_attack_technique_id = array_distinct("T1595")
+    $source_ip_outcome = array_distinct($source_ip)
+    $dominio_outcome = array_distinct($dominio)
+    $unique_directories = count_distinct($diretorio)
+
+  condition:
+    $e and $unique_directories > 2000
+}
