@@ -1,0 +1,30 @@
+rule KRP_TA0004_TEC1098_PRD_Atividades_SSH_de_Alto_Impacto {
+  meta:
+    author = "Kaio Vinicius Almeida Mendes"
+    description = "Detects high-impact Azure admin activity such as adding SSH keys"
+    severity = "High"
+    mitre_attack_tactic = "Privilege Escalation"
+    mitre_attack_technique = "Account Manipulation"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1098"
+    
+  events:
+    re.regex($e.target.file.full_path, `(?i)(?:[A-Z]:|\\\\[^\\]+\\[^\\]+|%(?:USERPROFILE|HOMEPATH)%|[/\\])(?:[^/\\]+[/\\])*(?:id_(?:rsa|ed25519|ecdsa|dsa)(?:\.[a-z0-9]+)?|authorized_keys|known_hosts|\.ssh[/\\][^/\\]+)$`)
+    $e.principal.user.userid = $admin
+
+  match:
+    $admin over 30m
+
+  outcome:
+    $event_type = array($e.metadata.event_type)
+    $product_event_type = array($e.metadata.product_event_type)
+    $user = array($e.principal.user.userid)
+    $resource = array($e.target.resource.name)
+    $target_ip = array($e.target.ip)
+    $target_hostname = array($e.target.hostname)
+    $mitre_attack_tactic = array_distinct("Privilege Escalation")
+    $mitre_attack_technique = array_distinct("Account Manipulation")
+    $mitre_attack_technique_id = array_distinct("T1098")
+
+  condition:
+    $e
+}
