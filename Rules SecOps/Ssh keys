@@ -1,7 +1,7 @@
 rule KRP_TA0004_TEC1098_PRD_Atividades_SSH_de_Alto_Impacto {
   meta:
     author = "Kaio Vinicius Almeida Mendes"
-    description = "Detects high-impact Azure admin activity such as adding SSH keys"
+    description = "Detects high-impact activity such as adding SSH keys"
     severity = "High"
     mitre_attack_tactic = "Privilege Escalation"
     mitre_attack_technique = "Account Manipulation"
