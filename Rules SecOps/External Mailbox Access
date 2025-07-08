@@ -1,4 +1,4 @@
-rule KRP_TA0010_TEC1114_PRD_Exchange_workflow_MailItemsAccessed_operation_anomaly {
+rule TA0010_TEC1114_PRD_Exchange_workflow_MailItemsAccessed_operation_anomaly {
   meta:
     author = "Kaio Vinicius Almeida Mendes"
     description = "Detect when a user outside the organization has access to the exchange"
