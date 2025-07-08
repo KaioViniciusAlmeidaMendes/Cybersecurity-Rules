@@ -1,6 +1,6 @@
 rule KRP_TA0001_TEC1133_PRD_Accessed_files_shared_by_external_user {
     meta:
-        author = "William Freire"
+        author = "Kaio Vinicius Almeida Mendes"
         description = "Detect any events that are associated with accessing files shared by external users"
         severity = "Low"
         mitre_attack_tactic = "Initial Access"
