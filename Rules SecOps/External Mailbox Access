@@ -1,0 +1,26 @@
+rule KRP_TA0010_TEC1114_PRD_Exchange_workflow_MailItemsAccessed_operation_anomaly {
+  meta:
+    author = "Kaio Vinicius Almeida Mendes"
+    description = "Detect when a user outside the organization has access to the exchange"
+    severity = "Medium"
+    mitre_attack_tactic = "Collection"
+    mitre_attack_technique = "Email Collection: Mail Clients"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1114/002/"
+    
+  events:
+   $e.metadata.event_type = "EMAIL_UNCATEGORIZED" 
+   $e.metadata.product_event_type = "MailItemsAccessed"  
+   NOT re.regex($e.principal.user.userid, "YOUR DOMAIN") 
+   $e.principal.user.userid != $e.target.user.userid 
+   $e.principal.user.userid =  $user
+
+  match:
+    $user over 30m
+  outcome:
+    $mitre_attack_tactic = array_distinct("Collection")
+    $mitre_attack_technique = array_distinct("Email Collection: Email Forwarding Rule ")
+    $mitre_attack_technique_id = array_distinct("T1114")
+
+  condition:
+    $e
+}
