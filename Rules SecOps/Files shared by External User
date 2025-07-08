@@ -1,0 +1,27 @@
+rule KRP_TA0001_TEC1133_PRD_Accessed_files_shared_by_external_user {
+    meta:
+        author = "William Freire"
+        description = "Detect any events that are associated with accessing files shared by external users"
+        severity = "Low"
+        mitre_attack_tactic = "Initial Access"
+        mitre_attack_technique = "External Remote Services"
+        mitre_attack_url = "https://attack.mitre.org/techniques/T1133"
+        
+    events:
+    $e.metadata.event_type = "USER_RESOURCE_ACCESS" 
+    $e.principal.application = "SharePoint"
+    $e.metadata.product_event_type = "FileAccessed" and not
+    re.regex($e.principal.user.userid, "YOUR DOMAIN")
+    $e.metadata.product_event_type = $hostname
+    
+    match:
+    $hostname over 4h
+
+    outcome:
+    $mitre_attack_tactic = array_distinct("Initial Access")
+    $mitre_attack_technique = array_distinct("External Remote Services")
+    $mitre_attack_technique_id = array_distinct("T1133")
+
+    condition:
+    $e
+}
