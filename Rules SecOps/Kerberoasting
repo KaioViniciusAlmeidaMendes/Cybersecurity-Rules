@@ -1,0 +1,32 @@
+rule TA0006_TEC1558_HOMOL_Kerberoasting{
+
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica usuário solicitando muitos (TGS)"
+    type = "alert"
+    severity = "Medium"
+    mitre_attack_tactic = "Credential Acess"
+    mitre_attack_technique = "Steal or Forge Kerberos Tickets"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1558/"
+
+  events:
+    $event.metadata.log_type = "WINEVTLOG"
+    $event.metadata.product_event_type = "4769"
+    not re.regex($event.target.application,".*\\$$")
+    $user_name = $event.target.user.userid
+    $service_name = $event.target.application
+    $action=$event.metadata.product_event_type
+    $ip = $event.principal.ip
+
+    match:
+        $action over 1h
+  outcome:
+    $mitre_attack_tactic = array_distinct("Credential Acess")
+    $mitre_attack_technique = array_distinct("Steal or Forge Kerberos Tickets")
+    $mitre_attack_technique_id = array_distinct("T1558.0006")
+    $ip_outcome = array_distinct($ip)
+    $user_name_outcome = array_distinct($user_name) 
+    $unique_service_name = count_distinct($service_name)
+  condition:
+    $event and $unique_service_name > 15
+}
