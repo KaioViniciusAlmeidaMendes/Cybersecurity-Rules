@@ -1,0 +1,46 @@
+rule TA0003_T1112_PRD_Windows_AutoStart_Registry_Modification {
+ 
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Identifica mudança nas chaves de registro RUN, responsável por setar as aplicações que serã iniciadas no BOOT do host"
+    type = "alert"
+    severity = "High"
+    mitre_attack_tactic = "Persistence"
+    mitre_attack_technique = "Modify Registry"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1112/"
+
+  events:
+    $event.metadata.event_type = "REGISTRY_MODIFICATION"        
+    $event.target.registry.registry_key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run" or 
+    $event.target.registry.registry_key = "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+    $host = $event.principal.hostname
+    $user = $event.principal.user.userid
+    $parent_process = $event.principal.process.parent_process.file.full_path
+    $parent_process_command_line = $event.principal.process.parent_process.command_line
+    $process = $event.principal.process.file.full_path 
+    $process_command_line = $event.principal.process.command_line 
+    $SHA1 = $event.principal.process.file.sha1
+    $action =  $event.metadata.event_type
+    $registry_value_name = $event.target.registry.registry_key
+    $registry_value_data = $event.target.registry.registry_value_data 
+
+    match:
+        $action over 1h
+
+   outcome:
+        $mitre_attack_tactic = array_distinct("Persistence")
+        $mitre_attack_technique = array_distinct("Modify Registry")
+        $mitre_attack_technique_id = array_distinct("T1112")
+        $host_outcome = array_distinct($host)
+        $user_outcome = array_distinct($user)
+        $parent_process_outcome = array_distinct($parent_process)
+        $parent_process_command_line_outcome = array_distinct($parent_process_command_line)
+        $process_outcome = array_distinct($process)
+        $process_command_line_outcome = array_distinct($process_command_line)
+        $SHA1_process = array_distinct($SHA1)
+        $registry_value_name_outcome = array_distinct($registry_value_name)
+        $registry_value_data_outcome = array_distinct($registry_value_data)
+
+  condition:
+    $event
+}
