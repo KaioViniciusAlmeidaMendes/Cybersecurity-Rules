@@ -1,1 +1,2 @@
+//Author: Enzo Bomfim
 index=winevents event_id IN (4886,4887) "SAN:"
