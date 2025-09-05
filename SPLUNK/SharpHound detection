@@ -1,0 +1,1 @@
+(index=sysmon event_id=1) OR (index=winevents event_id=4688) AND (process_name="*SharpHound*" OR (process_name="*powershell*" AND process_command_line IN ("*get-aduser*","get-netgpo","get-adgroupmember"))) 
