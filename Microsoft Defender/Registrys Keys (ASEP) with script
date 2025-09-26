@@ -1,0 +1,18 @@
+let ASEP_ARRAY = dynamic([
+"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
+"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunServices",
+"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce"
+]);
+let RUNTIMER_REGEX = @"^python[a-zA-Z0-9.]*\.exe$|^node\.exe$|^javaw?\.exe$|^[w,c]script\.exe$|^powershell.exe$"
+;
+DeviceRegistryEvents
+| where InitiatingProcessFileName matches regex RUNTIMER_REGEX
+| where RegistryKey has_any (ASEP_ARRAY)
+| where ActionType == @"RegistryValueSet"
+| where not(InitiatingProcessAccountDomain has_any ("autoridade nt", "nt authority"))
+| project-reorder TimeGenerated, DeviceName, ActionType, Registry*, Previous*, InitiatingProcessFileName, InitiatingProcessParentFileName
+| extend Host_0_HostName = DeviceName
+| extend RegistryKey_0_Key = RegistryValueData
+| extend Account_0_FullName = InitiatingProcessAccountUpn
