@@ -1,0 +1,55 @@
+rule TA0011_TEC1568_PRD_dns_query_to_recently_created_domain {
+  meta:
+    author = "Google Cloud Security"
+    description = "DNS query to a recently created domain"
+    rule_id = "mr_a5cff3f1-8092-48a0-b4a3-f3f856299474"
+    rule_name = "DNS Query To Recently Created Domain"
+    type = "alert"
+    tags = "whois"
+    data_source = "microsoft sysmon"
+    severity = "Low"
+    priority = "Low"
+    mitre_attack_tactic = "Command and Control"
+    mitre_attack_technique = "Dynamic Resolution"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1568/"
+
+  events:
+    ($e.metadata.event_type = "NETWORK_CONNECTION" or
+    $e.metadata.event_type = "NETWORK_DNS" or
+    $e.metadata.event_type = "NETWORK_HTTP" or
+    $e.metadata.event_type = "NETWORK_FLOW")
+    $dns_query = strings.extract_domain($e.target.url)    
+    $e.intermediary.hostname = $FW
+    $e.principal.ip = $ip_maquina
+    $e.principal.user.userid = $user
+    $e.security_result.action != "BLOCK"
+    not $e.target.url_metadata.url in %IP_bloqueado_FW
+    not $e.target.url_metadata.url in %URL_whitelist_FW
+
+    // whois data provided by GCTI
+    $whois.graph.entity.hostname = $dns_query
+    $whois.graph.metadata.entity_type = "DOMAIN_NAME"
+    $whois.graph.metadata.vendor_name = "WHOIS"
+    $whois.graph.entity.domain.creation_time.seconds > 0
+    // domain was created in the last 30 days
+    2592000 > timestamp.current_seconds() - $whois.graph.entity.domain.creation_time.seconds
+
+  match:
+    $user, $dns_query over 1h
+
+  outcome:
+    $risk_score = max(35)
+    $event_count = count_distinct($e.metadata.id)
+    $User_src = array_distinct($user)
+    $Computer_IP = array_distinct($ip_maquina)   
+    $target_ip = array_distinct($e.target.ip)
+    $target_url = array_distinct($e.target.url)
+    $Domain_dst = array_distinct($dns_query)
+    $Firewall = array_distinct($FW)
+    $mitre_attack_tactic = array_distinct("Command and Control")
+    $mitre_attack_technique = array_distinct("Dynamic Resolution")
+    $mitre_attack_technique_id = array_distinct("T1568")
+
+  condition:
+    $e and $whois
+}
