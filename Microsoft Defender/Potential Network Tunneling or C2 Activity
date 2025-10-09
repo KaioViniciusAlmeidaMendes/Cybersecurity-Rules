@@ -1,0 +1,32 @@
+// Lista de ferramentas (minúsculas)
+let tools = dynamic([
+  "ngrok","chisel","netcat","socat","responder","ligolo-ng_proxy","nc.exe",
+  "sshuttle","rpivot","regeorg","neo-georg","zrok","dnscat","localxpose"
+]);
+// Lista de domínios/endpoints
+let url = dynamic([
+  "webhook","api.cloudflare.com","pinggy.io","discord.com/api","serveo.net",
+  "amazonaws.com","api.telegram.org"
+]);
+union DeviceProcessEvents, DeviceNetworkEvents
+| extend
+    FileName_l   = tolower(coalesce(FileName, "")),
+    CmdLine_l    = tolower(coalesce(ProcessCommandLine, "")),
+    FolderPath_l = tolower(coalesce(FolderPath, "")),
+    RemoteUrl_l  = tolower(coalesce(RemoteUrl, ""))
+// comparar com as listas (NOTA: cada has_any recebe o dynamic list correto)
+| where
+    FileName_l has_any (tools)
+    or CmdLine_l has_any (tools)
+    or FolderPath_l has_any (tools)
+    or RemoteUrl_l has_any (url)
+| project Timestamp,
+          DeviceName,
+          AccountName,
+          EventType = iff(isnotempty(FileName), "ProcessEvent", "NetworkEvent"),
+          FileName, ProcessCommandLine, SHA1,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessVersionInfoCompanyName,
+          InitiatingProcessFolderPath, InitiatingProcessSHA1,
+          InitiatingProcessParentFileName,
+          RemoteUrl, RemotePort, RemoteIP
