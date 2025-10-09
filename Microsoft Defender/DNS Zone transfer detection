@@ -1,0 +1,5 @@
+DeviceNetworkEvents 
+| where ActionType == "DnsConnectionInspected" or RemotePort == 53
+| extend QueryType = tostring(parse_json(AdditionalFields).qtype_name)
+| where tolower(QueryType) has "axfr"
+
