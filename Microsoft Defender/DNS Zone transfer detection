@@ -2,4 +2,5 @@ DeviceNetworkEvents
 | where ActionType == "DnsConnectionInspected" or RemotePort == 53
 | extend QueryType = tostring(parse_json(AdditionalFields).qtype_name)
 | where tolower(QueryType) has "axfr"
-
+| project Timestamp,DeviceName,InitiatingProcessAccountName,ActionType,Protocol,LocalIP,LocalPort,RemoteIP,RemotePort,InitiatingProcessFileName,
+InitiatingProcessCommandLine,InitiatingProcessFolderPath,InitiatingProcessSHA256,InitiatingProcessParentFileName 
