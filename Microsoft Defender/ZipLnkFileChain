@@ -1,0 +1,12 @@
+DeviceFileEvents
+| where ActionType == "FileCreated"
+| where FileName endswith ".zip"
+| project DeviceId, FolderPath, ZipTimestamp = Timestamp
+| join kind=inner (
+    DeviceFileEvents
+    | where ActionType == "FileCreated"
+    | where FileName endswith ".lnk"
+    | project DeviceId, FolderPath, LnkTimestamp = Timestamp, FileName
+) on DeviceId, FolderPath
+| where LnkTimestamp >= ZipTimestamp
+| project DeviceId, FolderPath, ZipTimestamp, LnkTimestamp, FileName
