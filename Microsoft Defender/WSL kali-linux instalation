@@ -1,0 +1,4 @@
+DeviceProcessEvents 
+| where FileName == "wsl.exe"
+| where ProcessCommandLine has "--instal kali-linux"
+| project Timestamp, DeviceName,AccountName, FileName, ProcessCommandLine,SHA1,InitiatingProcessFileName,InitiatingProcessCommandLine,InitiatingProcessVersionInfoCompanyName,InitiatingProcessFolderPath,InitiatingProcessSHA1,InitiatingProcessParentFileName
