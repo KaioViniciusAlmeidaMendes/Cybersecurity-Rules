@@ -1,0 +1,9 @@
+let VPN = dynamic([ "nord.vpn","expressvpn","protonvpn","nortonvpn","totalvpn","pure.vpn","surfshark","hide.me",
+"privatevpn","cyberghost","piavpn","ipvanish","hotspot shield","urbanvpn","bitdefendervpn","ivacyvpn","holavpn"
+]);
+union DeviceProcessEvents,DeviceNetworkEvents 
+| where tolower(FileName) has_any (VPN) or tolower(ProcessCommandLine) has_any (VPN) or tolower(FolderPath) 
+has_any (VPN) or RemoteUrl has_any (VPN)
+| project Timestamp, DeviceName, AccountName, FileName, ProcessCommandLine, SHA1, FolderPath, RemoteUrl, ReportId, ActionType,
+InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessVersionInfoCompanyName,
+InitiatingProcessFolderPath, InitiatingProcessSHA1, InitiatingProcessParentFileName
