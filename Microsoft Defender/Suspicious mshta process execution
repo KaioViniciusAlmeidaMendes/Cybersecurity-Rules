@@ -1,0 +1,11 @@
+DeviceProcessEvents 
+| where InitiatingProcessParentFileName == "explorer.exe"
+| where InitiatingProcessFileName == "cmd.exe"
+| where FileName  == "mshta.exe"
+| where ProcessCommandLine has "https://"
+| join kind=inner(
+DeviceProcessEvents 
+| where InitiatingProcessFileName == "mshta.exe"
+| where  FileName has_any  ("powershell.exe","powershell_ise.exe","pwsh")
+)
+| project Timestamp, DeviceName,AccountName, FileName, ProcessCommandLine,SHA1,InitiatingProcessFileName,InitiatingProcessCommandLine,InitiatingProcessVersionInfoCompanyName,InitiatingProcessFolderPath,InitiatingProcessSHA1,InitiatingProcessParentFileName
