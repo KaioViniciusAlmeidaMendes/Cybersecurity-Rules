@@ -1,0 +1,4 @@
+DeviceTvmSecureConfigurationAssessment
+| where ConfigurationId == "scid-2010"  // ID do controle: Microsoft Defender Antivirus not running
+| where IsCompliant == false
+| order by Timestamp desc
