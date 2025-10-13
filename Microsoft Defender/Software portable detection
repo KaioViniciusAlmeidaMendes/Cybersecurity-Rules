@@ -1,3 +1,3 @@
 DeviceProcessEvents 
 | where FolderPath has "portable" or FileName has "portable" or ProcessCommandLine has "portable"
-| project Timestamp, DeviceName,AccountName, FileName, ProcessCommandLine,SHA1,InitiatingProcessFileName,InitiatingProcessCommandLine,InitiatingProcessVersionInfoCompanyName,InitiatingProcessFolderPath,InitiatingProcessSHA1,InitiatingProcessParentFileName
+| project Timestamp, DeviceName,AccountName, FileName, ProcessCommandLine,FolderPath,ProcessTokenElevation,SHA1,InitiatingProcessFileName,InitiatingProcessCommandLine,InitiatingProcessVersionInfoCompanyName,InitiatingProcessFolderPath,InitiatingProcessSHA1,InitiatingProcessParentFileName
