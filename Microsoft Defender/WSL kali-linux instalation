@@ -1,4 +1,5 @@
 DeviceProcessEvents 
+| where DeviceName == "df5498nb001.corp.caixa.gov.br"
 | where FileName == "wsl.exe"
-| where ProcessCommandLine has "--install kali-linux"
-| project Timestamp, DeviceName,AccountName, FileName, ProcessCommandLine,SHA1,InitiatingProcessFileName,InitiatingProcessCommandLine,InitiatingProcessVersionInfoCompanyName,InitiatingProcessFolderPath,InitiatingProcessSHA1,InitiatingProcessParentFileName
+| project Timestamp,DeviceName,AccountName,ActionType,FileName,ProcessCommandLine,FolderPath,ProcessTokenElevation,SHA1,
+InitiatingProcessFileName,InitiatingProcessCommandLine,InitiatingProcessSHA1,InitiatingProcessParentFileName
