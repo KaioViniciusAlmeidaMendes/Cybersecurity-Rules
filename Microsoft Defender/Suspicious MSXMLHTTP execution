@@ -1,0 +1,37 @@
+let msxmlhttp = 
+DeviceProcessEvents
+| where FileName in~ ("wscript.exe", "cscript.exe", "mshta.exe", "excel.exe", "winword.exe","iisexpress.exe","w3wp.exe")
+| where ProcessCommandLine in~ ("MSXML2.XMLHTTP", "Microsoft.XMLHTTP", "ServerXMLHTTP")
+| project msxmlhttpTime = Timestamp , 
+DeviceName, 
+msxmlhttParent=InitiatingProcessFileName, 
+msxmlhttParentcmd=InitiatingProcessCommandLine ,
+FileName, 
+msxmlhttpcmd=ProcessCommandLine,
+msxmlhttpSHA1=SHA1, 
+ReportId;
+let psw_exec = 
+    DeviceProcessEvents
+    | where FileName in~ ("powershell.exe","powershell_ise.exe","pwsh.exe")
+    | project DeviceName, Timestamp, 
+              PswTime = Timestamp,
+              PsCommand = ProcessCommandLine,
+              PswSHA1 = SHA1,
+              PswParent = InitiatingProcessFileName,
+              PswParentCmd = InitiatingProcessCommandLine;
+msxmlhttp
+| join kind=inner (
+    psw_exec
+) on DeviceName
+| where msxmlhttpTime >= PswTime and msxmlhttpTime  < (PswTime+ 5m)
+| project 
+DeviceName,
+    msxmlhttpTime,
+    PswTime,
+    msxmlhttpcmd,
+    PsCommand,
+    msxmlhttpSHA1,
+    PswSHA1,
+    msxmlhttParent,
+    msxmlhttParentcmd
+| order by msxmlhttpTime desc
