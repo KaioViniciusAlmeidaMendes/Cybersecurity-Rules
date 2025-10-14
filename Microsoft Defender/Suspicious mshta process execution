@@ -13,7 +13,7 @@ let mshta_exec =
 let psw_exec = 
     DeviceProcessEvents
     | where InitiatingProcessFileName == "mshta.exe"
-    | where FileName has_any ("powershell.exe","powershell_ise.exe","pwsh.exe")
+    | where FileName in~ ("powershell.exe","powershell_ise.exe","pwsh.exe")
     | project DeviceName, Timestamp, 
               PswTime = Timestamp,
               PsCommand = ProcessCommandLine,
