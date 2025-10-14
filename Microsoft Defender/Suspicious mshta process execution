@@ -1,11 +1,38 @@
-DeviceProcessEvents 
-| where InitiatingProcessParentFileName == "explorer.exe"
-| where InitiatingProcessFileName == "cmd.exe"
-| where FileName  == "mshta.exe"
-| where ProcessCommandLine has "https://"
-| join kind=inner(
-DeviceProcessEvents 
-| where InitiatingProcessFileName == "mshta.exe"
-| where  FileName has_any  ("powershell.exe","powershell_ise.exe","pwsh")
-)
-| project Timestamp, DeviceName,AccountName, FileName, ProcessCommandLine,SHA1,InitiatingProcessFileName,InitiatingProcessCommandLine,InitiatingProcessVersionInfoCompanyName,InitiatingProcessFolderPath,InitiatingProcessSHA1,InitiatingProcessParentFileName
+let mshta_exec = 
+    DeviceProcessEvents
+    | where InitiatingProcessParentFileName == "explorer.exe"
+    | where InitiatingProcessFileName == "cmd.exe"
+    | where FileName == "mshta.exe"
+    | where ProcessCommandLine has "https://"
+    | project DeviceName, Timestamp, 
+              MshtaTime = Timestamp,
+              MshtaCommand = ProcessCommandLine,
+              MshtaSHA1 = SHA1,
+              MshtaParent = InitiatingProcessFileName,
+              MshtaParentCmd = InitiatingProcessCommandLine;
+let psw_exec = 
+    DeviceProcessEvents
+    | where InitiatingProcessFileName == "mshta.exe"
+    | where FileName has_any ("powershell.exe","powershell_ise.exe","pwsh.exe")
+    | project DeviceName, Timestamp, 
+              PswTime = Timestamp,
+              PsCommand = ProcessCommandLine,
+              PswSHA1 = SHA1,
+              PswParent = InitiatingProcessFileName,
+              PswParentCmd = InitiatingProcessCommandLine;
+mshta_exec
+| join kind=inner (
+    psw_exec
+) on DeviceName
+| where MshtaTime >= PswTime and MshtaTime   < (PswTime+ 5m)
+| project 
+DeviceName,
+    MshtaTime,
+    PswTime,
+    MshtaCommand,
+    PsCommand,
+    MshtaSHA1,
+    PswSHA1,
+    MshtaParent,
+    MshtaParentCmd
+| order by MshtaTime desc
