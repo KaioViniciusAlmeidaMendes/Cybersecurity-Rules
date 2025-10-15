@@ -1,0 +1,15 @@
+let QuickAssistProcess = DeviceProcessEvents
+| where FileName == "QuickAssist.exe"
+| project Timestamp, DeviceName, InitiatingProcessAccountName, FileName;
+let QuickAssistNetwork = DeviceNetworkEvents
+| where ActionType == "HttpConnectionInspected"
+| where RemotePort == 443
+| extend ConnectInfo = todynamic(AdditionalFields)
+| extend HttpHost = ConnectInfo.host
+| where HttpHost has "remoteassistance.support.services.microsoft.com"
+| project Timestamp, DeviceName, RemoteUrl = HttpHost;
+QuickAssistProcess
+| join kind=inner (
+    QuickAssistNetwork
+) on DeviceName, Timestamp
+| project Timestamp, DeviceName, InitiatingProcessAccountName, FileName, RemoteUrl
