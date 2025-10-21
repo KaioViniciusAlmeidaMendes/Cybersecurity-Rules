@@ -1,0 +1,7 @@
+DeviceEvents
+| where ActionType == "UsbDriveMounted"
+| extend UsbDetails = parse_json(tostring(AdditionalFields))
+| extend Usb = parse_json(tostring(AdditionalFields)).ProductName
+| where Usb has "External USB" or Usb == "USB DISK" or Usb == "USB Special Disk" 
+or Usb == "USB Flash Drive"
+| summarize count() by DeviceName
