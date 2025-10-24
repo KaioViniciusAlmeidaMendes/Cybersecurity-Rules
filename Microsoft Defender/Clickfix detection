@@ -1,0 +1,18 @@
+DeviceRegistryEvents 
+| where InitiatingProcessFileName == "explorer.exe"
+| where ActionType == "RegistryValueSet"
+| where RegistryKey == @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU"
+| where tolower(RegistryValueData) has "powershell.exe"
+| project RUNMRUTimestamp=Timestamp,DeviceId,InitiatingProcessAccountName,DeviceName,RegistryValueName,RegistryValueData,InitiatingProcessFileName,
+InitiatingProcessCommandLine
+//optinional
+| join kind=inner (
+    DeviceProcessEvents 
+    | where InitiatingProcessFileName == "explorer.exe"
+    | where tolower( FileName) == "powershell.exe"
+    | where ProcessCommandLine has_any ("Net.WebClient","DownloadFile","Invoke-WebRequest","iwr","Invoke-Shellcode","http:",
+    "New-Object System.Net.Sockets.TcpClient","IEX","Invoke-Expression","DownloadString") or ProcessCommandLine has_any ("base64","-EcondedCommand","-enc")
+    | project PWSHTimestamp=Timestamp,DeviceId,DeviceName,ActionType,User=AccountName
+) on DeviceId  
+| where PWSHTimestamp between (RUNMRUTimestamp .. 5m)
+| project RUNMRUTimestamp,PWSHTimestamp,User,DeviceName,RegistryValueName,RegistryValueData,InitiatingProcessCommandLine
