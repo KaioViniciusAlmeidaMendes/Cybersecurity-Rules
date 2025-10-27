@@ -1,0 +1,9 @@
+// Find all the consent grant activities related to the cloud app in last 30 days
+CloudAppEvents
+| where RawEventData.Workload == "AzureActiveDirectory"
+| where ActionType == "Consent to application."
+| extend SAMAcoount =tostring(RawEventData.UserId)
+| project Timestamp,SAMAcoount,AccountDisplayName,IPAddress,ActionType,UserAgent,IsAdminOperation,Application,ActivityType,
+ObjectName,ObjectType 
+| sort by Timestamp desc
+| summarize   by  SAMAcoount,AccountDisplayName,ActionType,UserAgent,IsAdminOperation,Application,ActivityType,ObjectName,ObjectType
