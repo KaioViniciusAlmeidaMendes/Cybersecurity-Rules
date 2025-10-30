@@ -1,0 +1,23 @@
+DeviceNetworkEvents
+| where ActionType == "ConnectionSuccess"
+| where RemoteUrl has "copilotstudio.microsoft.com"
+| extend AccountUPN=InitiatingProcessAccountName 
+| project StudioTimestamp=Timestamp,AccountUPN,DeviceName,ActionType,RemoteUrl 
+| join kind=inner(
+CloudAppEvents
+| where RawEventData.Workload == "AzureActiveDirectory"
+| where ActionType == "Consent to application."
+| extend AccountUPN =tostring(RawEventData.UserId)
+| extend APPID = ObjectId
+|project ConsentTimestamp=Timestamp,AccountUPN,AccountObjectId,ActionType,ObjectName,APPID
+) on AccountUPN
+| where ConsentTimestamp between (StudioTimestamp .. 2m)
+| project StudioTimestamp,ConsentTimestamp,AccountUPN,AccountObjectId,DeviceName,RemoteUrl,ObjectName,APPID
+| join kind=inner (
+    GraphAPIAuditEvents 
+    | extend GA_AccountObjectId = AccountObjectId
+    | project ApplicationId,GA_AccountObjectId,RequestMethod,GraphAPITimeStamp=Timestamp,ResponseStatusCode,Scopes,RequestUri,IpAddress 
+) on $left.AccountObjectId == $right.GA_AccountObjectId
+| where ApplicationId == APPID
+| project StudioTimestamp,ConsentTimestamp,GraphAPITimeStamp,AccountUPN,RemoteUrl,ObjectName,Scopes,RequestMethod,
+RequestUri,ResponseStatusCode,IpAddress
