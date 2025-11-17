@@ -1,0 +1,13 @@
+DeviceTvmSecureConfigurationAssessment 
+| where ConfigurationId has_any ("scid-214","scid-2010","scid-2011","scid-2012","scid-2013","scid-2015","scid-2016","scid-2014") 
+| where IsCompliant == false
+| where IsApplicable == true
+| where Timestamp between (ago(30d) .. now())
+| summarize arg_max(Timestamp,*) by DeviceId,ConfigurationId
+| join kind=inner (
+DeviceTvmSecureConfigurationAssessmentKB
+| project ConfigurationId, ConfigurationName, ConfigurationDescription, RiskDescription, Tags, ConfigurationImpact
+) on ConfigurationId
+| extend DataEvento = format_datetime(Timestamp, 'yyyy-MM-dd')
+| project DataEvento,DeviceName,OSPlatform,ConfigurationCategory,ConfigurationSubcategory,ConfigurationId,ConfigurationName,ConfigurationDescription,RiskDescription,ConfigurationImpact,IsCompliant,IsApplicable
+| order by DeviceName,ConfigurationId,DataEvento asc
