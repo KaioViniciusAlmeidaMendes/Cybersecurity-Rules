@@ -1,7 +1,7 @@
 // Author: Enzo Silva Bomfim
 // Identifica alterações nas chaves de registros relacionados ao RDP
 
-DeviceEvents
+DeviceRegistryEvents 
 | where ActionType in ("RegistryModification", "RegistryCreation")
 | where 
     (RegistryKey == @"HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" and 
@@ -10,4 +10,3 @@ DeviceEvents
     (RegistryKey == @"HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" and 
      RegistryValueName == "TSUserEnabled" and 
      RegistryValueData != "DWORD (0x00000000)")
-| project Timestamp, DeviceName, AccountName, RegistryKey, RegistryValueName, RegistryValueData, InitiatingProcessFileName, ProcessCommandLine
