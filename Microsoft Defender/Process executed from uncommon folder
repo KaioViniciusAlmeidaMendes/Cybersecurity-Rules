@@ -1,13 +1,9 @@
 // Author: Enzo Bomfim
 // Identifica execução de processos em diretórios suspeitos
 DeviceProcessEvents
-| where ActionType == "Process Launch"
-| where 
-(
-  FolderPath == @"C:\Windows\Temp" or
-  FolderPath  == @"C:\ProgramData" or 
-  FolderPath == @"C:\Users\Public" or 
-  FolderPath startswith @"C:\Users\" and FolderPath contains @"\AppData\Local"
-)
+| where DeviceName has_any(machines)
+| where FolderPath has_any ("C:\\Windows\\Temp","C:\\ProgramData","C:\\Users\\Public","C:\\Windows\\Prefetch	") or (
+  FolderPath startswith @"C:\Users\" and FolderPath contains @"\AppData\Local\Temp")
+| where FileName  has_any ("cmd","powershell","mshta","wscript.exe", "cscript.exe", "mshta.exe")
 | project Timestamp, DeviceName, AccountName, FileName, FolderPath, SHA256, ProcessCommandLine, InitiatingProcessFileName, InitiatingProcessSHA256
 | order by Timestamp desc
