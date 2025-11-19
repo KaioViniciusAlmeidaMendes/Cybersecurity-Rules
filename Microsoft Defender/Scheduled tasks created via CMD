@@ -1,0 +1,5 @@
+DeviceProcessEvents 
+|where Timestamp >=ago(180d)
+| where InitiatingProcessFileName == "cmd.exe"
+| where FileName has "schtasks"
+| where ProcessCommandLine has "create" 
