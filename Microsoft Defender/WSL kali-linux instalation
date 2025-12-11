@@ -1,5 +1,4 @@
 DeviceProcessEvents 
-| where DeviceName == "df5498nb001.corp.caixa.gov.br"
 | where FileName == "wsl.exe"
 | project Timestamp,DeviceName,AccountName,ActionType,FileName,ProcessCommandLine,FolderPath,ProcessTokenElevation,SHA1,
 InitiatingProcessFileName,InitiatingProcessCommandLine,InitiatingProcessSHA1,InitiatingProcessParentFileName
