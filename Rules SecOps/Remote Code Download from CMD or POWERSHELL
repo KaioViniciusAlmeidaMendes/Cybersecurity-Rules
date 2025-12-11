@@ -1,0 +1,62 @@
+rule TA0002_T1059_HOMOL_KRP_TA0002_T1059_PowerShell_CMD_Remote_Code_Download {
+
+  meta:
+    author = "Enzo Silva Bomfim"
+    description = "Detecta uso de PowerShell/cmd/pwsh para download ou execução remota (Invoke-WebRequest, WebClient, DownloadFile, Invoke-Shellcode, New-Object System.Net.Sockets.TcpClient, etc.)."
+    type = "alert"
+    severity = "High"
+    mitre_attack_tactic = "Execution"
+    mitre_attack_technique = "Command and Scripting Interpreter"
+    mitre_attack_techniques = "T1059.001|T1059.003"
+    mitre_attack_url = "https://attack.mitre.org/techniques/T1059/"
+
+  events:
+    $e.metadata.event_type = "PROCESS_LAUNCH"
+
+    // Processo principal ou destino é powershell / pwsh / cmd
+    (
+      re.regex($e.principal.process.file.full_path, ".*(powershell|pwsh|cmd).*") or
+      re.regex($e.target.process.file.full_path, ".*(powershell|pwsh|cmd).*")
+    )
+
+    // Command line do principal ou do alvo contém padrões de download/execution
+    (
+      re.regex($e.principal.process.command_line, "Net\\.WebClient|DownloadFile|Invoke-WebRequest|Invoke-Shellcode|New-Object\\s+System\\.Net\\.Sockets\\.TcpClient|webclient") or
+      re.regex($e.target.process.command_line, "Net\\.WebClient|DownloadFile|Invoke-WebRequest|Invoke-Shellcode|New-Object\\s+System\\.Net\\.Sockets\\.TcpClient|webclient")
+    )
+
+    // Campos úteis
+    $host = $e.principal.hostname
+    $user = $e.principal.user.userid
+    $principal_process = $e.principal.process.file.full_path
+    $principal_cmd = $e.principal.process.command_line
+    $target_process = $e.target.process.file.full_path
+    $target_cmd = $e.target.process.command_line
+    $principal_md5 = $e.principal.process.file.md5
+    $target_md5 = $e.target.process.file.md5
+    $src_ip = $e.principal.ip
+    $action = $e.metadata.event_type
+
+  match:
+    $action over 1h
+
+  outcome:
+    $mitre_attack_tactic = array_distinct("Execution")
+    $mitre_attack_technique = array_distinct("Command and Scripting Interpreter")
+    $mitre_attack_techniques = array_distinct("T1059.001|T1059.003")
+    $host_outcome = array_distinct($host)
+    $user_outcome = array_distinct($user)
+    $principal_process_outcome = array_distinct($principal_process)
+    $principal_cmd_outcome = array_distinct($principal_cmd)
+    $target_process_outcome = array_distinct($target_process)
+    $target_cmd_outcome = array_distinct($target_cmd)
+    $principal_md5_outcome = array_distinct($principal_md5)
+    $target_md5_outcome = array_distinct($target_md5)
+    $src_ip_outcome = array_distinct($src_ip)
+    $total_events = count($e.metadata.id)
+    $distinct_principal_procs = count_distinct($principal_process)
+    $distinct_target_procs = count_distinct($target_process)
+
+  condition:
+    $e 
+}
