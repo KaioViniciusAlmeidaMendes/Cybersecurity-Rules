@@ -1,0 +1,15 @@
+let UsbDriveMount = DeviceEvents
+| where ActionType=="UsbDriveMounted"
+| extend ParsedFields=parse_json(AdditionalFields)
+| project DeviceId,DeviceName,DriveLetter=tostring(ParsedFields.DriveLetter),MountTime=Timestamp,
+ProductName=tostring(ParsedFields.ProductName),SerialNumber=tostring(ParsedFields.SerialNumber),Manufacturer=tostring(ParsedFields.Manufacturer);
+let FileCreation = DeviceFileEvents
+| where ActionType == "FileCreated"
+| where FolderPath !startswith "C:\\"
+| project DeviceId,InitiatingProcessAccountName,FileName,FolderPath,
+SHA256,Timestamp;
+FileCreation | join kind=inner (UsbDriveMount) on DeviceId
+| where InitiatingProcessAccountName matches regex "XXXXXXXXXXXX"
+| where FolderPath startswith DriveLetter
+| where Timestamp >= MountTime
+| summarize make_set(FileName) by InitiatingProcessAccountName,DeviceName,DriveLetter,ProductName,SerialNumber
