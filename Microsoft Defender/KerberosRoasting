@@ -1,0 +1,15 @@
+IdentityLogonEvents
+| extend TGS = tostring(parse_json(AdditionalFields)["KerberosType"]),
+APP = tostring(parse_json(AdditionalFields)["Spns"]),
+TargetUsers = tostring(parse_json(AdditionalFields)["TARGET_OBJECT.USER"]),
+ResponseServer = tostring(parse_json(AdditionalFields)["TO.DEVICE"]),
+SourceHost = tostring(parse_json(AdditionalFields)["FROM.DEVICE"])
+| where Timestamp > ago(1d)
+| where Protocol == "Kerberos"
+| where TGS == "KerberosTgs"
+//| where parse_json(AdditionalFields)["AttackTechniques"] has 'T1558.003'
+//| where parse_json(AdditionalFields)["EncryptionType"] has "rc4hmac"
+| summarize arg_max(Timestamp,now()),Target_SPN=dcount(TargetAccountDisplayName),make_set(TargetAccountDisplayName) by AccountName,SourceHost,ResponseServer
+| where Target_SPN >=3
+| where Timestamp between max_Timestamp_arg1 (Timestamp  .. 5m)
+| order by Target_SPN desc
