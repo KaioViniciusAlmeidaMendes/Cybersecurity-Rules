@@ -1,5 +1,8 @@
-let VPN = dynamic([ "nord.vpn","expressvpn","protonvpn","nortonvpn","totalvpn","pure.vpn","surfshark","hide.me",
-"privatevpn","cyberghost","piavpn","ipvanish","hotspot shield","urbanvpn","bitdefendervpn","ivacyvpn","holavpn"
+let VPN = dynamic([ "NordVPN","ExpressVPN","Proton VPN","Norton VPN","totalvpn","PureVPN","Surfshark","hide.me",
+"privatevpn","CyberGhost VPN","piavpn","ipvanish","hotspot shield","Urban VPN","bitdefendervpn","ivacyvpn","Hola VPN",
+"Astar VPN","OVPN","SetupVPN","PureVPN","VPN Surf","FoxyProxy","Troywell VPN","Turbo VPN","Planet VPN","KeepSolid VPN",
+"Browsec VPN","TunnelBear VPN","1clickvpn","Squid VPN","Hoxx VPN","VeePN","Avast SecureLine VPN","RusVPN","Mozilla VPN",
+"TorGuard VPN"
 ]);
 union DeviceProcessEvents,DeviceNetworkEvents 
 | where tolower(FileName) has_any (VPN) or tolower(ProcessCommandLine) has_any (VPN) or tolower(FolderPath) 
