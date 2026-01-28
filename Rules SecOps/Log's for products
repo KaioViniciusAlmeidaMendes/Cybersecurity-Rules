@@ -1,0 +1,7 @@
+metadata.product_name != ""
+match:
+  metadata.product_name
+outcome:
+  $total_count = count(metadata.id)
+order:
+  $total_count desc
