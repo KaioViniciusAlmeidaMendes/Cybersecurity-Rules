@@ -1,0 +1,4 @@
+DeviceRegistryEvents
+| where RegistryKey == @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\SrpV2"
+| where ActionType == "RegistryValueSet"
+| where RegistryValueName != " " 
