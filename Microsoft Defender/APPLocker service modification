@@ -1,5 +1,6 @@
 union  DeviceRegistryEvents,DeviceProcessEvents 
-| where RegistryKey == @"HKLM:\SYSTEM\CurrentControlSet\Services\AppIDSvc" or ProcessCommandLine has_cs @"HKLM:\SYSTEM\CurrentControlSet\Services\AppIDSvc"
+| where RegistryKey == @"HKLM:\SYSTEM\CurrentControlSet\Services\AppIDSvc" or ProcessCommandLine has_any (@"HKLM:\SYSTEM\CurrentControlSet\Services\AppIDSvc",
+"sc stop AppIDSvc")
 | where ActionType in ("RegistryKeyDeleted","RegistryValueSet","RegistryValueDeleted","ProcessCreated")
 | project EventTime=Timestamp, DeviceName, AccountName, ActionType, RegistryKey, RegistryValueName, RegistryValueData,
 ProcessCommandLine, InitiatingProcessFileName, InitiatingProcessSHA256
