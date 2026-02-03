@@ -1,0 +1,4 @@
+DeviceEvents
+| where Timestamp >=ago(1h)
+| where ActionType has "SecurityLogCleared"
+| summarize arg_min(Timestamp,*) by DeviceName,AccountName,InitiatingProcessFileName
