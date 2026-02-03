@@ -1,0 +1,16 @@
+let Timeframe = 5m;
+DeviceFileEvents
+| where ActionType == "FileDeleted"
+| summarize make_set(Timestamp),count() by DeviceName,bin(Timestamp,Timeframe)
+| where count_ > 500
+| extend FilesExcluded = count_
+| order by count_ desc 
+| join kind=inner ( 
+DeviceProcessEvents
+| where FileName  =~ "cipher.exe"
+| summarize CipherCount = dcount(ProcessCommandLine), 
+  CipherList = make_set(ProcessCommandLine) by DeviceName, bin(Timestamp,Timeframe) 
+   //cipher.exe accessing multiple drives in a short timeframe 
+| where CipherCount > 1
+) on DeviceName,Timestamp
+| project DeviceName,CipherList,CipherCount,FilesExcluded
