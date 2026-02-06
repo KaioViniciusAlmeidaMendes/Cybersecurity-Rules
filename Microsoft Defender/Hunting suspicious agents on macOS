@@ -1,0 +1,10 @@
+DeviceFileEvents
+| where ActionType in ("FileModified","FileCreated")
+| where FileName endswith "pslist"
+| where FolderPath has_any ("~/Library/LaunchAgents/","/Library/LaunchAgents/")
+| invoke FileProfile()
+| where GlobalPrevalence < 2500
+| where GlobalFirstSeen < ago(90d)
+| where IsCertificateValid != true or IsRootSignerMicrosoft != true
+| project DeviceId,Timestamp,InitiatingProcessAccountName,ActionType,DeviceName,FileName,FolderPath,SHA256,GlobalPrevalence,GlobalFirstSeen,
+InitiatingProcessFileName,InitiatingProcessCommandLine,InitiatingProcessParentFileName
