@@ -1,0 +1,17 @@
+DeviceFileEvents
+| where ActionType == @"FileDeleted"
+| where not (InitiatingProcessParentFileName in ("userinit.exe","svchost.exe"))
+| where FolderPath has "AppData\\Roaming\\Microsoft\\Windows\\PowerShell\\PSReadLine" 
+and FolderPath startswith @"C:\Users\"
+| where  FileName == "ConsoleHost_history.txt"
+| where FolderPath !has ".old"
+| project  InitiatingProcessAccountName,DeviceName,ActionType,FileName,FolderPath,InitiatingProcessFileName,InitiatingProcessCommandLine,
+InitiatingProcessParentFileName
+| extend AccountName = InitiatingProcessAccountName
+| join kind=inner(
+IdentityInfo 
+| project AccountName,Department,AccountUpn
+) on AccountName 
+| summarize count() by InitiatingProcessAccountName,AccountUpn,Department,DeviceName,ActionType,FileName,FolderPath,InitiatingProcessFileName,
+InitiatingProcessCommandLine,InitiatingProcessParentFileName
+| order by count_ desc
