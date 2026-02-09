@@ -1,0 +1,12 @@
+// author: Benjamin Zulliger
+// https://www.linkedin.com/in/benjamin-zulliger/
+//reference: https://detections.ai/rules/019a2b52-9a77-726b-8f5a-37b38314ffb8
+DeviceProcessEvents
+| where FileName == "dscl"
+| where ProcessCommandLine has_all ("-append", "/Groups/admin", "GroupMembership")
+| extend Activity = "User Added To Admin Group Via Dscl"
+| union  
+DeviceProcessEvents
+| where FileName == "dseditgroup"
+| where ProcessCommandLine has_all ("-o edit", "-a", "-t", "admin")
+| extend Activity = "User Added To Admin Group Via Dseditgroup";
