@@ -9,4 +9,9 @@ DeviceProcessEvents
 DeviceProcessEvents
 | where FileName == "dseditgroup"
 | where ProcessCommandLine has_all ("-o edit", "-a", "-t", "admin")
-| extend Activity = "User Added To Admin Group Via Dseditgroup";
+| extend Activity = "User Added To Admin Group Via Dseditgroup"
+| union 
+DeviceProcessEvents
+| where FileName == "sysadminctl"
+| where ProcessCommandLine has_all ("interactive","-admin","-admin")
+| extend Activity = "User Added To Admin Group Via Sysadminctl"
