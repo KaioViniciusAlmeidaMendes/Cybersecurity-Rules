@@ -1,0 +1,16 @@
+//reference: https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1027.001/T1027.001.md
+DeviceProcessEvents
+| where FileName == "truncate"
+| where ProcessCommandLine has_all ("-s","+1")
+| project Timestamp, DeviceName,AccountName, FileName,InitiatingProcessVersionInfoFileDescription,PWSCmd=ProcessCommandLine,FolderPath,SHA256,InitiatingProcessFileName,
+InitiatingProcessCommandLine,InitiatingProcessVersionInfoCompanyName,InitiatingProcessFolderPath,InitiatingProcessSHA256,
+InitiatingProcessParentFileName
+| extend Activity = "Possible Pad Binary to Change Hash using truncate command"
+| union 
+DeviceProcessEvents
+| where FileName == "dd"
+| where ProcessCommandLine has_all (">>","bs=","if=")
+| extend Activity = "Possible pad Binary to Change Hash"
+| project Timestamp, DeviceName,AccountName, FileName,InitiatingProcessVersionInfoFileDescription,PWSCmd=ProcessCommandLine,FolderPath,SHA256,InitiatingProcessFileName,
+InitiatingProcessCommandLine,InitiatingProcessVersionInfoCompanyName,InitiatingProcessFolderPath,InitiatingProcessSHA256,
+InitiatingProcessParentFileName
