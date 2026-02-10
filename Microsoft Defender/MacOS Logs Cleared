@@ -1,0 +1,29 @@
+let shell_history = dynamic([".bash_history",".zsh_history"]);
+let hist_variable = dynamic (["HISTFILESIZE","HISTSIZE","HISTFILE"]);
+DeviceProcessEvents
+| where FileName == "rm"
+| where ProcessCommandLine has_any (shell_history )
+| extend Activity = "Clears bash history via rm"
+| union
+DeviceProcessEvents
+| where FileName == "cat"
+| where ProcessCommandLine has ("/dev/null")
+| where ProcessCommandLine has_any (shell_history)
+| extend Activity = "Clears bash history via cat /dev/null"
+| union 
+DeviceProcessEvents
+| where FileName == "ln"
+| where ProcessCommandLine has_all ("-f","/dev/null")
+| where ProcessCommandLine has_any (shell_history)
+| extend Activity = "Clears bash history via a symlink to /dev/null"
+| union 
+DeviceProcessEvents
+| where FileName == "export"
+| where ProcessCommandLine has_any (hist_variable)
+| where ProcessCommandLine has ("0")
+| extend Activity = "Setting the history size variable to zero"
+| union 
+DeviceProcessEvents
+| where FileName == "set"
+| where ProcessCommandLine has_all ("+o","history")
+| extend Activity = "disable bash history logging" 
