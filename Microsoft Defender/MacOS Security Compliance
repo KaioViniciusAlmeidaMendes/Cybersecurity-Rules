@@ -1,0 +1,11 @@
+DeviceTvmSecureConfigurationAssessment
+| where DeviceName matches regex ".*?\\d{4}MC|mc\\d{3,4}"
+| where ConfigurationId in ("scid-5007","scid-5004","scid-5010","scid-5009","scid-5006","scid-5002","scid-5090","scid-5013","scid-2030","scid-5095","scid-5091") 
+| where IsApplicable == true and IsCompliant == false
+//| project Timestamp,DeviceName,OSPlatform,ConfigurationId,ConfigurationSubcategory,ConfigurationImpact,IsCompliant,IsApplicable
+| summarize arg_max(Timestamp,*) by DeviceId,ConfigurationId
+| join kind=inner (
+    DeviceTvmSecureConfigurationAssessmentKB
+    | project ConfigurationId, ConfigurationName, ConfigurationDescription, RiskDescription, Tags, ConfigurationImpact
+    ) on ConfigurationId
+| summarize by DeviceName,OSPlatform,ConfigurationId,ConfigurationName,ConfigurationDescription,RiskDescription,ConfigurationSubcategory,ConfigurationImpact,IsCompliant,IsApplicable
