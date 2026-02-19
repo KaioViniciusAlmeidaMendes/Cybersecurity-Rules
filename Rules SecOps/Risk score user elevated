@@ -1,0 +1,27 @@
+rule composite_cumulative_risk_score_threshold_exceeded_user {
+
+ meta:
+   author = "Google Cloud Security"
+   description = "Detects a userid that exceeds a risk score threshold based on all rules"
+   severity = "High"
+   priority = "High"
+   type = "composite"
+
+ events:
+   $detect_prod.detection.detection.outcomes["principal_user_userid"] = $user
+   $detect_prod.detection.detection.outcomes["principal_user_userid"] != "SYSTEM"
+
+ match:
+   $user over 14d
+
+ outcome:
+   $risk_score = 60
+   $uniq_detection_count = count_distinct($detect_prod.detection.detection.rule_id)
+   $total_detection_count = count($detect_prod.detection.detection.rule_id)
+   $rules_triggered = array_distinct($detect_prod.detection.detection.rule_name)
+   // sum of the risk score to measure against the threshold
+   $cumulative_risk_score = sum($detect_prod.detection.detection.risk_score)
+
+ condition:
+   $detect_prod and $cumulative_risk_score >= 2000
+}
