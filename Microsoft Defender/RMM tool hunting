@@ -1,0 +1,126 @@
+//Reference:https://detections.ai/rules/019a8f61-8919-73d7-97f9-d3930bfe3911
+let TimeRange = 30d;
+// Define your approved/authorized RMM domains here
+//let ApprovedRMM = dynamic(["example.com"]); 
+//let ApprovedRMMFile = dynamic(["example.exe"]); 
+// Load RMM domains from LOLRMM (efficient CSV approach)
+let RMMDomainList = externaldata(URI: string, RMMTool: string)
+[@'https://raw.githubusercontent.com/magicsword-io/LOLRMM/main/website/public/api/rmm_domains.csv']
+with(format='csv', ignoreFirstRecord=true)
+| project RMMTool, URIClean = case(
+    URI startswith "*.", replace_string(URI, "*.", ""),
+    URI startswith "*", replace_string(URI, "*", ""),
+    URI !startswith "*" and URI contains "*", replace_regex(URI, @".+?\*", ""),
+    URI
+)
+| distinct RMMTool, URIClean;
+// Load RMM file indicators from LOLRMM JSON
+let RMMFileData = externaldata(results: dynamic)
+[@'https://lolrmm.io/api/rmm_tools.json']
+with(format='raw')
+| project RMMTools = parse_json(results)
+| mv-expand RMMTools
+| extend 
+    ToolName = tostring(RMMTools.Name),
+    Details = parse_json(tostring(RMMTools.Details))
+| extend InstallationPaths = Details.InstallationPaths
+| mv-expand InstallationPaths
+| extend FilePath = tostring(InstallationPaths)
+| where isnotempty(FilePath)
+| extend FileName = tostring(split(FilePath, @'\')[-1])
+| extend FileNameMac = tostring(split(replace(@'\\', '/', FilePath), '/')[-1])
+| extend FileName = iff(FileName == "", FileNameMac, FileName)  // Handle both path types
+| where isnotempty(FileName) and FileName != "*"  // Exclude empty and wildcard filenames
+| extend FilePathNormalized = replace(@'\\', '/', tolower(FilePath))  // Normalize to forward slashes
+| project ToolName, FileName, FilePath, FilePathNormalized
+| distinct ToolName, FileName, FilePath, FilePathNormalized;
+// Create lookup lists for efficient filtering
+let RMMFileNames = RMMFileData | project FileName | distinct FileName;
+let RMMDomains = RMMDomainList | project URIClean | distinct URIClean;
+// Get device OS information for context
+let DeviceInfo = 
+DeviceInfo
+| where Timestamp > ago(TimeRange)
+| summarize arg_max(Timestamp, OSPlatform) by DeviceId
+| project DeviceId, OSPlatform;
+// NETWORK CONNECTION HUNTING - Primary detection method (Works for both Windows and Mac)
+let NetworkHunt = 
+DeviceNetworkEvents
+| where Timestamp > ago(TimeRange)
+| where ActionType == "ConnectionSuccess"
+| where RemoteUrl has_any (RMMDomains)
+//| where not (RemoteUrl has_any (ApprovedRMM))  // Filter out approved RMM
+| project Timestamp, DeviceName, DeviceId, RemoteUrl, RemoteIP, RemotePort, 
+    InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessAccountName
+| join kind=leftouter (DeviceInfo) on DeviceId
+| join hint.strategy=broadcast kind=inner (
+    RMMDomainList
+) on $left.RemoteUrl == $right.URIClean
+| extend DetectionMethod = "Network Connection"
+| project Timestamp, DeviceName, DeviceId, OSPlatform, RMMTool, DetectionMethod, RemoteUrl, 
+    RemoteIP, RemotePort, InitiatingProcessFileName, InitiatingProcessCommandLine, 
+    InitiatingProcessAccountName, FolderPath = "", ExpectedPath = "";
+// PROCESS EXECUTION HUNTING (Cross-platform)
+let ProcessHunt = 
+DeviceProcessEvents
+| where Timestamp > ago(TimeRange)
+| where FileName in~ (RMMFileNames)
+//| where not (FileName has_any (ApprovedRMMFile))  // Filter out approved RMM
+| extend FolderPathNormalized = replace(@'\\', '/', tolower(FolderPath))  // Normalize paths
+| project Timestamp, DeviceName, DeviceId, FileName, FolderPath, FolderPathNormalized, 
+    ProcessCommandLine, SHA256, InitiatingProcessAccountName, InitiatingProcessFileName
+| join kind=leftouter (DeviceInfo) on DeviceId
+| join hint.strategy=broadcast kind=inner (
+    RMMFileData
+) on $left.FileName == $right.FileName
+| extend DetectionMethod = "Process Execution"
+| extend PathMatch = iff(FolderPathNormalized has FilePathNormalized or 
+                         tolower(FolderPath) has tolower(FilePath), 
+                         "Expected Location", "Unexpected Location")
+| project Timestamp, DeviceName, DeviceId, OSPlatform, RMMTool = ToolName, DetectionMethod, 
+    FileName, FolderPath, ExpectedPath = FilePath, PathMatch, ProcessCommandLine, SHA256, 
+    InitiatingProcessAccountName, RemoteUrl = "", RemoteIP = "", RemotePort = 0;
+// FILE ACTIVITY HUNTING (Cross-platform)
+let FileHunt = 
+DeviceFileEvents
+| where Timestamp > ago(TimeRange)
+| where ActionType in ("FileCreated", "FileModified")
+| where FileName in~ (RMMFileNames)
+//| where not (FileName has_any (ApprovedRMMFile))  // Filter out approved RMM
+| extend FolderPathNormalized = replace(@'\\', '/', tolower(FolderPath))  // Normalize paths
+| project Timestamp, DeviceName, DeviceId, FileName, FolderPath, FolderPathNormalized, 
+    SHA256, ActionType, InitiatingProcessAccountName, InitiatingProcessFileName
+| join kind=leftouter (DeviceInfo) on DeviceId
+| join hint.strategy=broadcast kind=inner (
+    RMMFileData
+) on $left.FileName == $right.FileName
+| extend DetectionMethod = "File Activity"
+| extend PathMatch = iff(FolderPathNormalized has FilePathNormalized or 
+                         tolower(FolderPath) has tolower(FilePath), 
+                         "Expected Location", "Unexpected Location")
+| project Timestamp, DeviceName, DeviceId, OSPlatform, RMMTool = ToolName, DetectionMethod, 
+    FileName, FolderPath, ExpectedPath = FilePath, PathMatch, ActionType, SHA256, 
+    InitiatingProcessAccountName, ProcessCommandLine = "", RemoteUrl = "", RemoteIP = "", RemotePort = 0;
+// Combine all detections and get latest activity per device
+union NetworkHunt, FileHunt, ProcessHunt
+| summarize arg_max(Timestamp, *) by DeviceId, RMMTool
+| summarize 
+    FirstSeen = min(Timestamp),
+    LastSeen = max(Timestamp),
+    TotalDetections = count(),
+    DetectionMethods = make_set(DetectionMethod),
+    AffectedDevices = make_set(DeviceName),
+    DeviceCount = dcount(DeviceId),
+    OSPlatforms = make_set(OSPlatform),
+    RemoteUrl = take_any(RemoteUrl),
+    FileName = take_any(FileName),
+    CommandLine = take_any(ProcessCommandLine),
+    ActualPath = take_any(FolderPath),
+    ExpectedPath = take_any(ExpectedPath),
+    PathMatch = take_any(PathMatch)
+    by RMMTool
+//| extend IsUnauthorized = true  // All results are unauthorized (approved RMM filtered out)
+| project RMMTool, DeviceCount, TotalDetections, FirstSeen, LastSeen, 
+    DetectionMethods, OSPlatforms, AffectedDevices, RemoteUrl, FileName, CommandLine, 
+    ActualPath, ExpectedPath, PathMatch
+| order by DeviceCount desc, TotalDetections desc
