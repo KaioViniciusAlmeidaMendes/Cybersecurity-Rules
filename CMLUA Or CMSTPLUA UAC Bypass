@@ -1,7 +1,0 @@
-//Author: Enzo Bomfim
-DeviceImageLoadEvents
-| where FileName in~ ("CMLUAUTIL.dll","CMSTPLUA.dll","CMLUA.dll")
-| where InitiatingProcessFileName !in~ ("CMSTP.exe","CMMGR32.exe") 
-//or not(FolderPath matches regex @".*\windows\.*") or not(FolderPath matches regex @".*\program files\.*") 
-| project Timestamp, InitiatingProcessAccountName,DeviceName,FileName,InitiatingProcessFileName, InitiatingProcessCommandLine, FolderPath, SHA256
-| order by Timestamp desc
