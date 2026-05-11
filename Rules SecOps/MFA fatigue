@@ -1,0 +1,44 @@
+rule KRP_HOMOL_MFA_Fatigue
+{
+  meta:
+    author = "Enzo Bomfim"
+    description = "Detecta geração de multiplas solicitações MFA enviadas aos usuários"
+    mitre_attack_tactic = "Credential Access"
+    mitre_attack_technique = "Multi-Factor Authentication Request Generation"
+    mitre_attack_technique_id = "T1621"
+
+  events:
+    $e.metadata.vendor_name = "Microsoft"
+    $e.metadata.product_name = "Azure AD"
+    $e.metadata.event_type = "USER_LOGIN"
+    $e.security_result.detection_fields.key = "is_interactive"
+    $user = $e.target.user.user_display_name 
+    (
+      $e.security_result.detection_fields.value = "500121" or // eventid 500121 -> Falha na autenticação forte (MFA negado pelo usuário ou timeout)
+      $e.security_result.detection_fields.value = "50158" or  // eventid 50158 -> Desafio de segurança externo não satisfeito
+      $e.security_result.detection_fields.value = "50074" or  // eventid 50074 -> MFA nao satisfeito
+      $e.security_result.detection_fields.value = "50088"     // eventid 50088 -> Falha na avaliação/token da política de acesso
+    )
+      
+  match:
+    $user over 1h
+    
+  outcome:
+    $risk_score = 80
+    $User = array_distinct($user)
+    $User_mail = array_distinct($e.target.user.email_addresses )
+    $event_id = array_distinct($e.security_result.detection_fields.value)
+    $ip = array_distinct($e.principal.ip)
+    $ip_country = array_distinct($e.principal.location.country_or_region)
+    $ip_city = array_distinct($e.principal.location.city )
+    $aplicacao = array_distinct($e.target.application )
+    $device_id = array_distinct($e.principal.asset_id)
+   $device_mange = array_distinct($e.principal.asset.attribute.labels.key)
+    $mitre_attack_tactic = array_distinct("Credential Access")
+    $mitre_attack_technique = array_distinct("Multi-Factor Authentication Request Generation")
+    $mitre_attack_technique_id = array_distinct("T1621")    
+
+  condition:
+    #e > 5 
+}
+
