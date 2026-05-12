@@ -1,0 +1,7 @@
+DeviceProcessEvents
+| where InitiatingProcessFileName in ("explorer.exe","cmd.exe","powershell.exe")
+| where InitiatingProcessFileName in ("powershell.exe", "POWERSHELL.EXE", "powershell_ise.exe", "POWERSHELL_ISE.EXE") 
+| where ProcessCommandLine contains "[System.Security.Cryptography.ProtectedData]::Unprotect"
+| project Timestamp,AccountName,ActionType,DeviceName,FileName,ProcessCommandLine,SHA256,FolderPath,InitiatingProcessFileName,
+InitiatingProcessCommandLine,InitiatingProcessSHA256,InitiatingProcessParentFileName
+| order by Timestamp desc 
