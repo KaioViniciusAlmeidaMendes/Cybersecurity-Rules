@@ -1,0 +1,34 @@
+rule pysoxy_python_proxy_execution {
+  meta:
+    description = "Detects execution of Python with PySoxy SOCKS5 proxy arguments (-ssl, -remote_port, -remote_ip) alongside compiled bytecode (.pyc) execution. PySoxy is a 10-year-old open-source SOCKS5 proxy that ReliaQuest observed being deployed via ClickFix as a secondary encrypted access path alongside PowerShell-based C2. The specific combination of these three argument flags with .pyc execution is rare in legitimate use and represents the PySoxy invocation pattern verbatim."
+    author = "tim@detections.ai"
+    date = "2026-05-12"
+    reference = "https://reliaquest.com/blog/threat-spotlight-clickfix-evolves-with-pysoxy-proxying/"
+    tags = "CLICKFIX, PROXY, PYTHON, C2, PYSOXY"
+    tactic = "TA0011"
+    technique = "T1090, T1059.006, T1572"
+    severity = "HIGH"
+    priority = "HIGH"
+    false_positives = "Legitimate administrative or development use of PySoxy-derived tools. May require tuning for developer workstations or pentest engagements."
+events:
+    $process.metadata.event_type = "PROCESS_LAUNCH"
+    re.regex($process.target.process.file.full_path, `(?i)\\python(3|w)?\.exe$`)
+    re.regex($process.target.process.command_line, `(?i)\.pyc\b`)
+    re.regex($process.target.process.command_line, `(?i)-ssl\b`)
+    re.regex($process.target.process.command_line, `(?i)-remote_port\b`)
+    re.regex($process.target.process.command_line, `(?i)-remote_ip\b`)
+    $process.principal.hostname = $hostname
+  match:
+    $hostname over 5m
+  outcome:
+    $risk_score = 90
+    $event_count = count_distinct($process.metadata.id)
+    $target_process_pid = array_distinct($process.target.process.pid)
+    $target_process_command_line = array_distinct($process.target.process.command_line)
+    $target_process_file_full_path = array_distinct($process.target.process.file.full_path)
+    $principal_process_command_line = array_distinct($process.principal.process.command_line)
+    $principal_process_file_full_path = array_distinct($process.principal.process.file.full_path)
+    $principal_user_userid = array_distinct($process.principal.user.userid)
+  condition:
+    #process > 0
+}
