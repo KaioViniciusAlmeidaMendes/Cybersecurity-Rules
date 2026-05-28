@@ -1,0 +1,6 @@
+DeviceProcessEvents
+| where FileName == "certutil.exe"
+| where ProcessCommandLine contains "-encode"
+| project Timestamp,AccountName,DeviceName,ActionType,FileName,ProcessCommandLine,ProcessVersionInfoFileDescription,FolderPath,SHA256,InitiatingProcessFileName,InitiatingProcessCommandLine,
+InitiatingProcessParentFileName
+| order by Timestamp desc
