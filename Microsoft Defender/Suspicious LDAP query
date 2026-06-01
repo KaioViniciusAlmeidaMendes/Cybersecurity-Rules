@@ -1,0 +1,28 @@
+DeviceEvents
+| where ActionType == "LdapSearch"
+| where InitiatingProcessFileName has_any (
+    "adfind.exe", 
+    "sharphound.exe", 
+    "bloodhound.exe", 
+    "dsquery.exe", 
+    "dsget.exe", 
+    "ldp.exe", 
+    "csvde.exe", 
+    "ldifde.exe", 
+    "powershell.exe", 
+    "pwsh.exe", 
+    "cmd.exe"
+)
+| mv-expand Array_quebrado = parse_json(AdditionalFields)
+| extend Query = Array_quebrado.DistinguishedName
+| where isnotempty(Query)
+| project Timestamp, 
+          DeviceName, 
+          InitiatingProcessAccountName, 
+          InitiatingProcessFileName, 
+          InitiatingProcessCommandLine, 
+          InitiatingProcessFolderPath, 
+          InitiatingProcessVersionInfoFileDescription,
+          InitiatingProcessSHA256, 
+          Query, 
+          AdditionalFields
