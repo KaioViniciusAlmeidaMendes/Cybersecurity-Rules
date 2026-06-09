@@ -1,0 +1,15 @@
+DeviceImageLoadEvents
+| where DeviceName matches regex @"XXXXXXXXXXXXXXXXXXXXXXXX"
+| where FileName endswith ".dll"
+| where InitiatingProcessFileName endswith ".exe"
+| extend DLLDir = tostring(parse_path(FolderPath).DirectoryPath),
+         EXEDir = tostring(parse_path(InitiatingProcessFolderPath).DirectoryPath)
+| where isnotnull(DLLDir) and isnotnull(EXEDir)
+| where DLLDir =~ EXEDir
+| where DLLDir !in~ (@"C:\Windows\System32", @"C:\Windows\System", @"C:\Windows\SysWOW64")
+| invoke FileProfile()
+| where GlobalPrevalence < 1000
+| extend DLLLifeTime = datetime_diff("day", now(), GlobalFirstSeen)
+| project Timestamp, InitiatingProcessAccountName, DeviceName, ActionType, FileName, DLLDir, SHA256, Signer,
+          GlobalPrevalence, GlobalFirstSeen, DLLLifeTime, InitiatingProcessFileName, InitiatingProcessCommandLine, EXEDir
+| order by Timestamp desc
