@@ -1,0 +1,26 @@
+let nonApprovedAIagents = dynamic([
+    "claude", "gpt-engineer", "aider-chat", "aichat", "tgpt", 
+    "claude-cli", "chatgpt-cli", "OpenClaude", "OpenClaw", "chatgpt"
+]);
+let AI_Events = 
+    search in (DeviceProcessEvents, DeviceFileEvents, DeviceEvents)
+    Timestamp >= ago(30d)
+    | where ActionType in ('ProcessCreated', 'FileCreated', 'FileModified', 'FileDownloaded', 'DriverLoad')
+    | where FileName endswith ".exe" or FileName endswith ".msi" or FileName endswith  ".msix"
+    | where
+(ProcessVersionInfoInternalFileName has_any (nonApprovedAIagents)
+or ProcessVersionInfoProductName has_any (nonApprovedAIagents)
+or ProcessVersionInfoFileDescription has_any (nonApprovedAIagents)
+or FileName has_any (nonApprovedAIagents)
+or FolderPath has_any (nonApprovedAIagents)
+)
+| where isnotempty(AccountName)
+| where DeviceName matches regex @"xxxxxxxxxxxxxxxxx"
+| summarize by DeviceName, FileName,AccountSid;
+AI_Events
+| join kind=inner (
+    IdentityInfo
+    | summarize arg_max(Timestamp, *) by OnPremSid 
+    | project Department, Manager, AccountDisplayName, OnPremSid, AccountUpn
+) on $left.AccountSid == $right.OnPremSid
+| project DeviceName, AccountDisplayName, AccountUpn, Department, Manager, FileName
