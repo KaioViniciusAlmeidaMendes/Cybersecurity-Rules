@@ -1,0 +1,43 @@
+let StartautorestPassword = 
+    AuditLogs
+    | where Result == "success"
+    | where OperationName == "Self-service password reset flow activity progress"
+    | where ResultDescription == "User submitted their user ID"
+    | extend User = tostring(InitiatedBy.user.userPrincipalName)
+    | extend IP = tostring(InitiatedBy.user.ipAddress)
+    | extend TargetUser = tostring(TargetResources[0].userPrincipalName)
+    | summarize arg_min(TimeGenerated, *) by User
+    | project User, TargetUser, IP_Reset = IP, TimeReset = TimeGenerated;
+let SMSPasswordReset = 
+    AuditLogs
+    | where OperationName == "Self-service password reset flow activity progress"
+    | where ResultDescription == "User completed the mobile SMS verification option"
+    | extend User = tostring(InitiatedBy.user.userPrincipalName)
+    | extend TargetUser = tostring(TargetResources[0].userPrincipalName)
+    | extend IP = tostring(InitiatedBy.user.ipAddress)
+    | summarize arg_min(TimeGenerated, *) by User
+    | project User, TargetUser, IP_SMS = IP, TimeSMSReset = TimeGenerated;
+let MFAregistrer =
+    AuditLogs
+    | where Result == "success"
+    | where OperationName == "User registered security info"
+    | extend User = tostring(InitiatedBy.user.userPrincipalName)
+    | extend TargetUser = tostring(TargetResources[0].userPrincipalName)
+    | extend IP = tostring(InitiatedBy.user.ipAddress)
+    | summarize arg_min(TimeGenerated, *) by User
+    | project User, TargetUser, IP_MFA = IP, TimeRegistro = TimeGenerated;
+StartautorestPassword
+| join kind=inner SMSPasswordReset on User, TargetUser  
+| join kind=inner MFAregistrer on User, TargetUser
+| where TimeSMSReset > TimeReset
+| where TimeRegistro between (TimeReset .. (TimeReset + 10m))
+| project
+    User,
+    TargetUser,
+    IP_Reset,
+    IP_SMS,
+    IP_MFA,
+    TimeReset,
+    TimeSMSReset,
+    TimeRegistro
+| order by TimeReset desc
