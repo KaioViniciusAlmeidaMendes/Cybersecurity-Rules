@@ -1,0 +1,31 @@
+rule KRP_PRD_Windows_Lateral_Movement_WMI_Destination_Host {
+  meta:
+    author = "Enzo Bomfim"
+    case_name = "Windows - WMI Lateral Movement logon detected on Destination Host"
+    description = "Detecta o logon explícito (4648) realizado pelo WmiPrvSe.exe na máquina de destino — indica que esse host recebeu e executou um comando remoto via WMI."
+    severity = "Medium"
+    mitre_attack_tactic = "Lateral Movement"
+    mitre_attack_technique = "Windows Management Instrumentation"
+    mitre_attack_technique_id = "T1047"
+
+  events:
+    $e2.metadata.log_type = "WINEVTLOG"
+    $e2.metadata.event_type = "USER_LOGIN"
+    $e2.metadata.product_event_type = "4648"
+    $e2.principal.process.command_line = /WmiPrvSe\.exe/ nocase
+    $hostname = $e2.principal.hostname 
+    $Process2 = $e2.principal.process.command_line
+    $SRCIP2 = $e2.principal.ip 
+    $User2 = $e2.target.user.userid 
+
+  match:
+    $hostname over 5m
+  outcome:
+    $risk_score = 60
+    $Process2_outcome = array_distinct($Process2)
+    $Hostname_outcome = array_distinct($hostname)
+    $SRCIP2_outcome = array_distinct($SRCIP2)
+    $User2_outcome = array_distinct($User2)
+  condition:
+    $e2
+}
