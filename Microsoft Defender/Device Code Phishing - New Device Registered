@@ -1,0 +1,50 @@
+let DeviceRegistred =
+    AuditLogs
+    | where TimeGenerated >= ago(7d)
+    | where Category == "Device"
+    | where LoggedByService == "Device Registration Service"
+    | where OperationName in (
+        "Add device",
+        "Register device",
+        "Add registered owner to device",
+        "Add registered users to device"
+      )
+    | where Result == "success"
+    | extend DeviceDisplayName = tostring(parse_json(TargetResources[0].displayName))
+    | extend InitiatedByUpn    = tostring(InitiatedBy.user.userPrincipalName)
+    | extend InitiatedByIp     = tostring(InitiatedBy.user.ipAddress)
+    | project
+        TimeRegistration = TimeGenerated,
+        RegistedIP       = InitiatedByIp,
+        InitiatedByUpn,
+        DeviceDisplayName;
+let deviceCodeLogins =
+    SigninLogs
+    | where TimeGenerated >= ago(7d)
+    | where AuthenticationProtocol == "deviceCode"
+        or ClientAppUsed == "Device Code Flow"
+        or AuthenticationDetails has "deviceCode"
+    | where ResultType == 0
+    | project
+        TimeSignin         = TimeGenerated,
+        UserPrincipalName,
+        AppDisplayName,
+        AuthIP             = IPAddress,
+        Location;
+deviceCodeLogins
+| join kind=inner (DeviceRegistred) on $left.UserPrincipalName == $right.InitiatedByUpn
+| where TimeRegistration >= TimeSignin
+| where TimeRegistration <= TimeSignin + 5m
+| extend IntervaloSegundos = datetime_diff("second", TimeRegistration, TimeSignin)
+//| extend IPMismatch = iff(AuthIP != RegistedIP and isnotempty(RegistedIP), true, false)
+| project
+    TimeSignin,
+    TimeRegistration,
+    IntervaloSegundos,
+    UserPrincipalName,
+    AppDisplayName,
+    Location,
+    AuthIP,
+    RegistedIP,
+    DeviceDisplayName
+| order by TimeSignin desc
