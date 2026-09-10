@@ -1,0 +1,28 @@
+let WhiteListProcess = dynamic([
+    "msedge.exe", "firefox.exe", "msedgewebview2.exe", "chrome.exe",
+    "opera.exe", "brave.exe", "iexplore.exe"
+]);
+let TunnelingRegex = @"(?i)(?:^|\.)(?:ngrok(?:-free|-paid)?\.(?:io|app|dev|me)|bore\.(?:pub|network)|localtunnel\.(?:me|user)|trycloudflare\.com|pinggy\.(?:link|io)|serveo\.net|localhost\.run|telebit\.cloud|playit\.gg|packetriot\.com|pagekite\.me|webhook\.site|tunnels\.mobi|pico\.(?:sh|run)|zrok\.io)(?::\d+)?$";
+DeviceNetworkEvents
+| where Timestamp > ago(1h)                       // janela de lookback do agendamento, não bin fixo
+| where ActionType == "ConnectionSuccess"
+| where Protocol has "Tcp"
+| where RemotePort in (443, 4443)                  // ngrok usa 443/4443 para o canal de controle
+| where LocalIPType == "Private"
+| where InitiatingProcessFileName !in~ (WhiteListProcess)
+| extend UrlHost = tostring(parse_url(RemoteUrl).Host)
+| where UrlHost matches regex TunnelingRegex
+| summarize
+    TotalConexoes   = count(),
+    Processos       = make_set(InitiatingProcessFileName),
+    CommandLines    = make_set(InitiatingProcessCommandLine),
+    RemoteIPs       = make_set(RemoteIP),
+    PrimeiraConexao = min(Timestamp),
+    UltimaConexao   = max(Timestamp)
+    by DeviceName, UrlHost, InitiatingProcessFileName
+| extend Cenario = case(
+    TotalConexoes == 1, "Conexão única — possível túnel persistente (reverse shell)",
+    TotalConexoes >= 3, "Reconexões repetidas — possível beacon/instabilidade forçando reconnect",
+    "Baixa confiança"
+  )
+| order by TotalConexoes desc
