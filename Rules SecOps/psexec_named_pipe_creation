@@ -1,0 +1,45 @@
+rule psexec_named_pipe_creation {
+  meta:
+    author = "detections.ai"
+    date = "2025-09-25"
+    description = "Detects the creation of or connection to named pipes commonly associated with PsExec activity, which is often used for lateral movement. This includes the default 'psexesvc' pipe and patterns used by impacket's psexec.py."
+    reference = "https://medium.com/@Mr.AnyThink/hunting-for-psexec-exe-abuse-ef81556af21e"
+    tags = "LATERAL_MOVEMENT, EXECUTION, PSEXEC, WINDOWS"
+    tactic = "TA0008, TA0002"
+    technique = "T1021.002, T1570"
+    false_positives = "Legitimate administrative use of PsExec may trigger this rule. Tuning may be required to exclude known administrative hosts or user accounts."
+events:
+    // Detects named pipe creation or connection events, which are common UDM mappings for this activity.
+    ($pipe.metadata.event_type = "FILE_CREATION" or $pipe.metadata.event_type = "NETWORK_CONNECTION" or $pipe.metadata.event_type = "PIPE_CREATION")
+
+    // Matches known PsExec named pipe patterns in either the file path or resource name fields.
+    (
+      re.regex($pipe.target.file.full_path, `\\\\\.\\pipe\\(psexesvc|[a-zA-Z0-9]+-[a-zA-Z0-9\-\._]+-\d{5}-(stdin|stdout|stderr))`) nocase or
+      re.regex($pipe.target.resource.name, `\\\\\.\\pipe\\(psexesvc|[a-zA-Z0-9]+-[a-zA-Z0-9\-\._]+-\d{5}-(stdin|stdout|stderr))`) nocase
+    )
+
+    // Placeholder for grouping events by the target hostname.
+    $pipe.principal.hostname = $hostname
+
+    // To reduce potential false positives from legitimate admin activity,
+    // consider filtering out events originating from known administrative servers or tools.
+    // For example: and not net.ip_in_range_cidr($pipe.principal.ip, "10.1.1.0/24")
+
+  match:
+    // Correlate events on the same host over a 10 minute window.
+    $hostname over 10m
+
+  outcome:
+    // A medium risk score is assigned due to potential legitimate use.
+    $risk_score = 50
+    $principal_hostname = array_distinct($pipe.principal.hostname)
+    $principal_process_command_line = array_distinct($pipe.principal.process.command_line)
+    $principal_process_path = array_distinct($pipe.principal.process.file.full_path)
+    $principal_user = array_distinct($pipe.principal.user.userid)
+    // Capture the full name of the detected pipe.
+    $pipe_name = array_distinct(if($pipe.target.file.full_path != "", $pipe.target.file.full_path, $pipe.target.resource.name))
+    $event_count = count_distinct($pipe.metadata.id)
+
+  condition:
+    $pipe
+}
