@@ -1,0 +1,18 @@
+index=proxy site IN ("*ngrok-free.app*","*ngrok-free.dev*","*ngrok.app*","*ngrok.dev*","*ngrok.io*","*ngrok-free.pizza*","*ngrok.pizza*")
+| eval mbytes_out=round(bytes_out/1024/1024,3)
+| eval mbytes_in=round(bytes_in/1024/1024,3)
+| eval hour=strftime(_time,"%H")
+| eval fora_horario=if(hour<7 OR hour>20,1,0)
+| stats earliest(_time) AS first_seen,
+        latest(_time) AS last_seen,
+        count AS qtd_heartbeats,
+        max(duration) AS duracao_max,
+        max(mbytes_in) AS mbytes_in_max,
+        max(mbytes_out) AS mbytes_out_max,
+        max(fora_horario) AS teve_atividade_fora_horario
+        by src_ip, user, site
+| eval duracao_min=round(duracao_max/60,1)
+| where duracao_max > 1800 OR qtd_heartbeats > 10
+| convert ctime(first_seen) ctime(last_seen)
+| table first_seen, last_seen, src_ip, user, site, qtd_heartbeats, duracao_min, mbytes_in_max, mbytes_out_max, teve_atividade_fora_horario
+| sort - duracao_min
