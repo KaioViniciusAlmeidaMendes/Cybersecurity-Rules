@@ -1,0 +1,5 @@
+DeviceLogonEvents
+| where RemoteIPType == "Loopback"
+| where LogonType == "RemoteInteractive" 
+| project Timestamp,DeviceName,AccountName,ActionType,RemoteIP,RemoteIPType
+| order by Timestamp desc
