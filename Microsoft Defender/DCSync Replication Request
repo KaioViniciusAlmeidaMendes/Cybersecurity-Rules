@@ -1,0 +1,6 @@
+SecurityEvent
+| where EventID == 4662
+| where ObjectServer == "DS"
+| where Properties has "1131f6aa-9c07-11d1-f79f-00c04fc2dcd2" or Properties has "1131f6ad-9c07-11d1-f79f-00c04fc2dcd2"
+| extend SubjectHost = tostring(Computer)
+| project TimeGenerated, Computer, SubjectUserName, SubjectDomainName, ObjectDN, Properties, Activity
