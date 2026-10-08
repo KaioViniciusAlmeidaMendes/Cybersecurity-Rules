@@ -1,0 +1,32 @@
+let ParentWebProcesses = dynamic([
+    "w3wp.exe",          // IIS Worker Process
+    "httpd.exe",         // Apache
+    "nginx.exe",         // Nginx
+    "tomcat.exe",        // Apache Tomcat
+    "tomcat8.exe", 
+    "tomcat9.exe",
+    "java.exe",          // Java applications (comum para exploit em Web)
+    "javaw.exe",
+    "node.exe",          // Node.js
+    "php-cgi.exe",       // PHP CGI
+    "umworkerprocess.exe"// Exchange Web Services / OWA
+]);
+let ShellProcesses = dynamic([
+    "cmd.exe",
+    "powershell.exe",
+    "pwsh.exe",
+    "powershell_ise.exe",
+    "wscript.exe",
+    "cscript.exe",
+    "bash.exe",
+    "sh.exe",
+    "ssh.exe"
+]);
+DeviceProcessEvents
+| where AccountName matches regex "xxxxxxxxx" //regex for service accounts
+| where DeviceName matches regex "xxxxxxxxxx" //regex for web servers
+| where AccountName !="system"
+| where tolower(InitiatingProcessFileName) in (ParentWebProcesses)
+| where tolower(FileName) in (ShellProcesses)
+| project  Timestamp,AccountName,ActionType,DeviceName,FileName,ProcessCommandLine,FolderPath,InitiatingProcessFileName,InitiatingProcessCommandLine,InitiatingProcessFolderPath,InitiatingProcessParentFileName
+| order by Timestamp desc
