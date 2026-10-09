@@ -1,0 +1,12 @@
+CloudAuditEvents
+| where Timestamp > ago(Lookback)
+| where DataSource =~ "Kubernetes Audit"
+| extend Verb = tolower(coalesce(tostring(RawEventData.verb), OperationName))
+| extend Resource = tolower(tostring(RawEventData.objectRef.resource))
+| where Verb in ("create", "update", "patch")
+| where Resource in ("clusterrolebindings", "rolebindings")
+| extend Namespace = tostring(RawEventData.objectRef.namespace), Binding = tostring(RawEventData.objectRef.name)
+| extend User = tostring(RawEventData.user.username), SourceIp = tostring(RawEventData.sourceIPs[0])
+| extend RequestObject = tostring(RawEventData.requestObject)
+| where RequestObject has "cluster-admin" or Binding has "cluster-admin"
+| project Timestamp, Detection="K8S cluster-admin binding change", User, SourceIp, Namespace, Binding, UserAgent, RequestObject, RawEventData
