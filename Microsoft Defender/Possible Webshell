@@ -1,6 +1,8 @@
 let ParentWebProcesses = dynamic([
     "w3wp.exe",          // IIS Worker Process
-    "httpd.exe",         // Apache
+    "httpd.exe",  
+    "apache.exe",
+    "apache2.exe",       // Apache
     "nginx.exe",         // Nginx
     "tomcat.exe",        // Apache Tomcat
     "tomcat8.exe", 
@@ -20,11 +22,18 @@ let ShellProcesses = dynamic([
     "cscript.exe",
     "bash.exe",
     "sh.exe",
-    "ssh.exe"
+    "ssh.exe",
+    "curl.exe",
+    "net.exe",
+    "net1.exe",
+    "scp.exe",
+    "wmic.exe",
+    "rundll32.exe"
 ]);
 DeviceProcessEvents
-| where AccountName matches regex "xxxxxxxxx" //regex for service accounts
-| where DeviceName matches regex "xxxxxxxxxx" //regex for web servers
+| where not(AccountName matches regex @"xxxxxxxxxxxxxxxxxxxxx")//regex for service accounts
+and not(AccountName matches regex @"xxxxxxxxxxxxxxxxxxxx")
+| where not(DeviceName matches regex @"xxxxxxxxxxxxxxxxx") //regex for web servers
 | where AccountName !="system"
 | where tolower(InitiatingProcessFileName) in (ParentWebProcesses)
 | where tolower(FileName) in (ShellProcesses)
