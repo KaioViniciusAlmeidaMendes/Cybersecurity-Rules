@@ -1,0 +1,7 @@
+index=winevents EventCode=1200
+| rex field=_raw "\<UserId\>(?<user>.*)\<\/UserId\>"
+| rex field=_raw "\<IpAddress\>(?<src>.*)\<\/IpAddress\>"
+| rex field=_raw "Message=(?<Message>.*)"
+| rex field=_raw "\<OAuthClientId\>(?<App>.*)\</OAuthClientId\>" | search App!="N/A"
+| stats count by  user App src 
+| table user App src
